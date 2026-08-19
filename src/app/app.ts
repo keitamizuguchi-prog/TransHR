@@ -490,6 +490,9 @@ export class App {
         emp.assignedDept = 'Temp';
       });
 
+      // 現在の最適化済み配置を mainEmployees に反映
+      this.mainEmployees.set(this.employees());
+
       const updatedEmployees = [...this.mainEmployees(), ...additionalEmployees];
       this.employees.set(updatedEmployees);
       this.additionalFileLoaded.set(true);
