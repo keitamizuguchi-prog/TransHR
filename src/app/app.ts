@@ -349,15 +349,50 @@ export class App {
 
   protected employees = signal<Employee[]>([]);
   protected mainEmployees = signal<Employee[]>([]);
-  protected simulationResult = signal<SimulationResult | null>(null);
+  protected simulationResult = signal<SimulationResult>(this.createEmptyResult());
   protected objectiveComparisonResults = signal<ObjectiveComparisonResult[]>([]);
   protected additionalFileLoaded = signal<boolean>(false);
+  protected optimizationExecuted = signal<boolean>(false);
   protected deptIds: DepartmentId[] = ['A', 'B', 'C', 'Temp'];
   protected deptConfig = DEPT_CONFIG;
   protected minTotalSales = MIN_TOTAL_SALES;
   protected selectedObjective: OptimizationObjective = 'totalSales';
 
   constructor(private calculatorService: CalculatorService) {}
+
+  private createEmptyResult(): SimulationResult {
+    return {
+      deptA: {
+        deptId: 'A',
+        headcount: 0,
+        deptAbility: 0,
+        baseSales: 0,
+        finalSales: 0,
+        deptCost: 0,
+        profit: 0,
+      },
+      deptB: {
+        deptId: 'B',
+        headcount: 0,
+        deptAbility: 0,
+        baseSales: 0,
+        finalSales: 0,
+        deptCost: 0,
+        profit: 0,
+      },
+      deptC: {
+        deptId: 'C',
+        headcount: 0,
+        deptAbility: 0,
+        baseSales: 0,
+        finalSales: 0,
+        deptCost: 0,
+        profit: 0,
+      },
+      totalSales: 0,
+      totalProfit: 0,
+    };
+  }
 
   get deptAEmployees(): Employee[] {
     return this.getEmployeesByDept('A');
@@ -402,20 +437,13 @@ export class App {
       const employees = parseResult.employees;
 
       for (let i = 0; i < employees.length; i++) {
-        if (i < 40) {
-          employees[i].assignedDept = 'A';
-        } else if (i < 75) {
-          employees[i].assignedDept = 'B';
-        } else if (i < 100) {
-          employees[i].assignedDept = 'C';
-        } else {
-          employees[i].assignedDept = 'Temp';
-        }
+        employees[i].assignedDept = 'Temp';
       }
 
       this.mainEmployees.set(employees);
       this.employees.set(employees);
       this.additionalFileLoaded.set(false);
+      this.optimizationExecuted.set(false);
       this.updateSimulation();
       console.log('計算結果:', this.simulationResult());
     };
@@ -426,9 +454,10 @@ export class App {
     this.mainFileInput.nativeElement.value = '';
     this.mainEmployees.set([]);
     this.employees.set([]);
-    this.simulationResult.set(null);
+    this.simulationResult.set(this.createEmptyResult());
     this.objectiveComparisonResults.set([]);
     this.additionalFileLoaded.set(false);
+    this.optimizationExecuted.set(false);
     if (this.additionalFileInput) {
       this.additionalFileInput.nativeElement.value = '';
     }
@@ -557,6 +586,7 @@ export class App {
       return contribB - contribA;
     });
 
+    this.optimizationExecuted.set(true);
     this.updateSimulation();
   }
 
@@ -610,6 +640,7 @@ export class App {
 
     this.objectiveComparisonResults.set(results);
 
+    this.optimizationExecuted.set(true);
     this.employees.set(originalEmployees);
     this.updateSimulation();
 

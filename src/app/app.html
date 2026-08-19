@@ -70,17 +70,19 @@
     <div class="total-metrics">
       <div class="total-metric">
         <h3>全社売上</h3>
-        <div class="value" [ngStyle]="{ 'color': result.totalSales < minTotalSales ? 'red' : 'inherit', 'font-weight': result.totalSales < minTotalSales ? 'bold' : 'normal' }">
-          {{ result.totalSales | number:'1.2-2' }} 億円
+        <div class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.totalSales < minTotalSales ? 'red' : 'inherit', 'font-weight': optimizationExecuted() && result.totalSales < minTotalSales ? 'bold' : 'normal' }">
+          <span *ngIf="optimizationExecuted()">{{ result.totalSales | number:'1.2-2' }} 億円</span>
+          <span *ngIf="!optimizationExecuted()">‐</span>
         </div>
-        <div *ngIf="result.totalSales < minTotalSales" style="color: red; font-size: 12px; margin-top: 8px;">
+        <div *ngIf="optimizationExecuted() && result.totalSales < minTotalSales" style="color: red; font-size: 12px; margin-top: 8px;">
           ⚠️ 前年度売上（{{ minTotalSales }}億円）を下回っています
         </div>
       </div>
       <div class="total-metric">
         <h3>全社利益</h3>
-        <div class="value" [ngStyle]="{ 'color': result.totalProfit < 0 ? 'red' : 'inherit' }">
-          {{ result.totalProfit | number:'1.2-2' }} 億円
+        <div class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.totalProfit < 0 ? 'red' : 'inherit' }">
+          <span *ngIf="optimizationExecuted()">{{ result.totalProfit | number:'1.2-2' }} 億円</span>
+          <span *ngIf="!optimizationExecuted()">‐</span>
         </div>
       </div>
     </div>
@@ -92,11 +94,12 @@
         <h3>A事業部</h3>
         <div class="dept-card-row">
           <label>配置人数</label>
-          <span class="value" [ngStyle]="{ 'color': result.deptA.headcount < deptConfig['A'].minCount ? 'red' : 'inherit' }">
-            {{ result.deptA.headcount }}名
+          <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptA.headcount < deptConfig['A'].minCount ? 'red' : 'inherit' }">
+            <span *ngIf="optimizationExecuted()">{{ result.deptA.headcount }}名</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
           </span>
         </div>
-        <div *ngIf="result.deptA.headcount < deptConfig['A'].minCount" style="color: red; font-size: 12px; margin: 4px 0;">
+        <div *ngIf="optimizationExecuted() && result.deptA.headcount < deptConfig['A'].minCount" style="color: red; font-size: 12px; margin: 4px 0;">
           ⚠️ 人数不足
         </div>
         <div class="dept-card-row">
@@ -109,20 +112,30 @@
         </div>
         <div class="dept-card-row">
           <label>基本売上</label>
-          <span class="value">{{ result.deptA.baseSales | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptA.baseSales | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label>最終売上</label>
-          <span class="value">{{ result.deptA.finalSales | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptA.finalSales | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label>コスト</label>
-          <span class="value">{{ result.deptA.deptCost | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptA.deptCost | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label style="color: #28a745; font-weight: bold;">利益</label>
-          <span class="value" [ngStyle]="{ 'color': result.deptA.profit < 0 ? 'red' : '#28a745', 'font-weight': 'bold' }">
-            {{ result.deptA.profit | number:'1.2-2' }} 億円
+          <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptA.profit < 0 ? 'red' : '#28a745', 'font-weight': 'bold' }">
+            <span *ngIf="optimizationExecuted()">{{ result.deptA.profit | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
           </span>
         </div>
       </div>
@@ -132,11 +145,12 @@
         <h3 style="border-bottom-color: #17a2b8; color: #17a2b8;">B事業部</h3>
         <div class="dept-card-row">
           <label>配置人数</label>
-          <span class="value" [ngStyle]="{ 'color': result.deptB.headcount < deptConfig['B'].minCount ? 'red' : 'inherit' }">
-            {{ result.deptB.headcount }}名
+          <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptB.headcount < deptConfig['B'].minCount ? 'red' : 'inherit' }">
+            <span *ngIf="optimizationExecuted()">{{ result.deptB.headcount }}名</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
           </span>
         </div>
-        <div *ngIf="result.deptB.headcount < deptConfig['B'].minCount" style="color: red; font-size: 12px; margin: 4px 0;">
+        <div *ngIf="optimizationExecuted() && result.deptB.headcount < deptConfig['B'].minCount" style="color: red; font-size: 12px; margin: 4px 0;">
           ⚠️ 人数不足
         </div>
         <div class="dept-card-row">
@@ -149,20 +163,30 @@
         </div>
         <div class="dept-card-row">
           <label>基本売上</label>
-          <span class="value">{{ result.deptB.baseSales | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptB.baseSales | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label>最終売上</label>
-          <span class="value">{{ result.deptB.finalSales | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptB.finalSales | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label>コスト</label>
-          <span class="value">{{ result.deptB.deptCost | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptB.deptCost | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label style="color: #28a745; font-weight: bold;">利益</label>
-          <span class="value" [ngStyle]="{ 'color': result.deptB.profit < 0 ? 'red' : '#28a745', 'font-weight': 'bold' }">
-            {{ result.deptB.profit | number:'1.2-2' }} 億円
+          <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptB.profit < 0 ? 'red' : '#28a745', 'font-weight': 'bold' }">
+            <span *ngIf="optimizationExecuted()">{{ result.deptB.profit | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
           </span>
         </div>
       </div>
@@ -172,11 +196,12 @@
         <h3 style="border-bottom-color: #ffc107; color: #ffc107;">C事業部</h3>
         <div class="dept-card-row">
           <label>配置人数</label>
-          <span class="value" [ngStyle]="{ 'color': result.deptC.headcount < deptConfig['C'].minCount ? 'red' : 'inherit' }">
-            {{ result.deptC.headcount }}名
+          <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptC.headcount < deptConfig['C'].minCount ? 'red' : 'inherit' }">
+            <span *ngIf="optimizationExecuted()">{{ result.deptC.headcount }}名</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
           </span>
         </div>
-        <div *ngIf="result.deptC.headcount < deptConfig['C'].minCount" style="color: red; font-size: 12px; margin: 4px 0;">
+        <div *ngIf="optimizationExecuted() && result.deptC.headcount < deptConfig['C'].minCount" style="color: red; font-size: 12px; margin: 4px 0;">
           ⚠️ 人数不足
         </div>
         <div class="dept-card-row">
@@ -189,20 +214,30 @@
         </div>
         <div class="dept-card-row">
           <label>基本売上</label>
-          <span class="value">{{ result.deptC.baseSales | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptC.baseSales | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label>最終売上</label>
-          <span class="value">{{ result.deptC.finalSales | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptC.finalSales | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label>コスト</label>
-          <span class="value">{{ result.deptC.deptCost | number:'1.2-2' }} 億円</span>
+          <span class="value">
+            <span *ngIf="optimizationExecuted()">{{ result.deptC.deptCost | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
+          </span>
         </div>
         <div class="dept-card-row">
           <label style="color: #28a745; font-weight: bold;">利益</label>
-          <span class="value" [ngStyle]="{ 'color': result.deptC.profit < 0 ? 'red' : '#28a745', 'font-weight': 'bold' }">
-            {{ result.deptC.profit | number:'1.2-2' }} 億円
+          <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptC.profit < 0 ? 'red' : '#28a745', 'font-weight': 'bold' }">
+            <span *ngIf="optimizationExecuted()">{{ result.deptC.profit | number:'1.2-2' }} 億円</span>
+            <span *ngIf="!optimizationExecuted()">‐</span>
           </span>
         </div>
       </div>
