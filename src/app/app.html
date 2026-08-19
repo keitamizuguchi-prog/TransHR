@@ -61,6 +61,22 @@
       <button (click)="runAllOptimizationsComparison()" class="comparison-button">
         全目的の結果を一括比較
       </button>
+      <button
+        *ngIf="additionalFileLoaded() && employees().length > mainEmployees().length"
+        (click)="runMatrixComparison()"
+        class="comparison-button"
+        style="background-color: #6f42c1; margin-left: 10px;"
+      >
+        全目的の採用ROIマトリクスを表示
+      </button>
+      <button
+        *ngIf="employees().length > 0"
+        (click)="exportPlacementToCsv()"
+        class="comparison-button"
+        style="background-color: #6c757d; margin-left: 10px;"
+      >
+        現在の配置をCSV出力
+      </button>
     </div>
   </div>
 
@@ -285,6 +301,51 @@
     </div>
   </div>
 
+  <!-- マトリクス比較テーブル（採用前後比較） -->
+  <div class="comparison-section" *ngIf="matrixComparisonResults().length > 0">
+    <h2>経営判断用マトリクス比較（採用前後）</h2>
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>目的</th>
+            <th colspan="3" style="background-color: #e7f3ff; color: #333;">採用前 (100名)</th>
+            <th colspan="3" style="background-color: #f0e7ff; color: #333;">採用後 (110名)</th>
+            <th colspan="2" style="background-color: #ffe7f3; color: #333;">採用効果 (差分)</th>
+          </tr>
+          <tr>
+            <th></th>
+            <th style="background-color: #e7f3ff; color: #333; font-size: 12px;">配置</th>
+            <th style="background-color: #e7f3ff; color: #333; font-size: 12px;">全社売上</th>
+            <th style="background-color: #e7f3ff; color: #333; font-size: 12px;">全社利益</th>
+            <th style="background-color: #f0e7ff; color: #333; font-size: 12px;">配置</th>
+            <th style="background-color: #f0e7ff; color: #333; font-size: 12px;">全社売上</th>
+            <th style="background-color: #f0e7ff; color: #333; font-size: 12px;">全社利益</th>
+            <th style="background-color: #ffe7f3; color: #333; font-size: 12px;">売上増減</th>
+            <th style="background-color: #ffe7f3; color: #333; font-size: 12px;">利益増減</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let result of matrixComparisonResults()">
+            <td class="objective-name">{{ result.objectiveName }}</td>
+            <td style="font-size: 12px;">{{ result.beforePlacement }}</td>
+            <td style="font-size: 12px;">{{ result.beforeTotalSales | number:'1.2-2' }}</td>
+            <td style="font-size: 12px;">{{ result.beforeTotalProfit | number:'1.2-2' }}</td>
+            <td style="font-size: 12px;">{{ result.afterPlacement }}</td>
+            <td style="font-size: 12px;">{{ result.afterTotalSales | number:'1.2-2' }}</td>
+            <td style="font-size: 12px;">{{ result.afterTotalProfit | number:'1.2-2' }}</td>
+            <td [ngClass]="{'text-success': result.salesDiff >= 0, 'text-danger': result.salesDiff < 0}" style="font-weight: bold; font-size: 12px;">
+              {{ (result.salesDiff >= 0 ? '+' : '') }}{{ result.salesDiff | number:'1.2-2' }}
+            </td>
+            <td [ngClass]="{'text-success': result.profitDiff >= 0, 'text-danger': result.profitDiff < 0}" style="font-weight: bold; font-size: 12px;">
+              {{ (result.profitDiff >= 0 ? '+' : '') }}{{ result.profitDiff | number:'1.2-2' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- 社員リストエリア -->
   <div class="employees-section" *ngIf="employees().length > 0">
     <h2>社員配置リスト</h2>
@@ -317,7 +378,7 @@
               </div>
               <div class="employee-stat">
                 <label>給与:</label>
-                <span>{{ (emp.laborCost / 1000000).toFixed(1) }}M</span>
+                <span>{{ emp.laborCost }}M</span>
               </div>
             </div>
             <div class="employee-contribution">
@@ -365,7 +426,7 @@
               </div>
               <div class="employee-stat">
                 <label>給与:</label>
-                <span>{{ (emp.laborCost / 1000000).toFixed(1) }}M</span>
+                <span>{{ emp.laborCost }}M</span>
               </div>
             </div>
             <div class="employee-contribution">
@@ -413,7 +474,7 @@
               </div>
               <div class="employee-stat">
                 <label>給与:</label>
-                <span>{{ (emp.laborCost / 1000000).toFixed(1) }}M</span>
+                <span>{{ emp.laborCost }}M</span>
               </div>
             </div>
             <div class="employee-contribution">
@@ -461,7 +522,7 @@
               </div>
               <div class="employee-stat">
                 <label>給与:</label>
-                <span>{{ (emp.laborCost / 1000000).toFixed(1) }}M</span>
+                <span>{{ emp.laborCost }}M</span>
               </div>
             </div>
             <div class="employee-contribution">

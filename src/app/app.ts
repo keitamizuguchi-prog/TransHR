@@ -1,7 +1,7 @@
 import { Component, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DepartmentId, Employee, SimulationResult, OptimizationObjective, ObjectiveComparisonResult } from './models/types';
+import { DepartmentId, Employee, SimulationResult, OptimizationObjective, ObjectiveComparisonResult, MatrixComparisonResult } from './models/types';
 import { CalculatorService } from './services/calculator.service';
 import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
 
@@ -341,6 +341,12 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       color: #333;
       background-color: #e7f3ff;
     }
+    .text-success {
+      color: #28a745;
+    }
+    .text-danger {
+      color: #dc3545;
+    }
   `]
 })
 export class App {
@@ -351,6 +357,7 @@ export class App {
   protected mainEmployees = signal<Employee[]>([]);
   protected simulationResult = signal<SimulationResult>(this.createEmptyResult());
   protected objectiveComparisonResults = signal<ObjectiveComparisonResult[]>([]);
+  protected matrixComparisonResults = signal<MatrixComparisonResult[]>([]);
   protected additionalFileLoaded = signal<boolean>(false);
   protected optimizationExecuted = signal<boolean>(false);
   protected deptIds: DepartmentId[] = ['A', 'B', 'C', 'Temp'];
@@ -655,6 +662,109 @@ export class App {
       employee,
       employee.assignedDept
     );
+  }
+
+  private getPlacementString(result: SimulationResult): string {
+    return `A:${result.deptA.headcount}, B:${result.deptB.headcount}, C:${result.deptC.headcount}`;
+  }
+
+  runMatrixComparison(): void {
+    const baseEmployees = this.mainEmployees();
+    const additionalEmployees = this.employees().filter(
+      emp => !baseEmployees.find(be => be.id === emp.id)
+    );
+
+    if (baseEmployees.length === 0 || additionalEmployees.length === 0) {
+      alert('メインファイルと追加ファイルの両方が必要です。');
+      return;
+    }
+
+    const objectives: OptimizationObjective[] = [
+      'totalSales',
+      'deptAProfit',
+      'deptBSales',
+      'deptCSales',
+    ];
+
+    const objectiveLabels = [
+      '課題1: 全社売上最大化',
+      '課題2: A事業部利益最大化',
+      '課題3: B事業部売上最大化',
+      '課題4: C事業部売上最大化',
+    ];
+
+    const results: MatrixComparisonResult[] = [];
+
+    for (let i = 0; i < objectives.length; i++) {
+      const objective = objectives[i];
+      const objectiveLabel = objectiveLabels[i];
+
+      // 採用前（100名）での最適化
+      const beforeOptimized = this.calculatorService.optimizePlacement(
+        baseEmployees,
+        objective
+      );
+      const beforeResult = this.calculatorService.calculateTotalSimulation(
+        beforeOptimized
+      );
+
+      // 採用後（110名）での最適化
+      const allEmployees = [...baseEmployees, ...additionalEmployees];
+      const afterOptimized = this.calculatorService.optimizePlacement(
+        allEmployees,
+        objective
+      );
+      const afterResult = this.calculatorService.calculateTotalSimulation(
+        afterOptimized
+      );
+
+      // 差分を計算
+      const salesDiff = afterResult.totalSales - beforeResult.totalSales;
+      const profitDiff = afterResult.totalProfit - beforeResult.totalProfit;
+
+      results.push({
+        objectiveName: objectiveLabel,
+        beforePlacement: this.getPlacementString(beforeResult),
+        beforeTotalSales: beforeResult.totalSales,
+        beforeTotalProfit: beforeResult.totalProfit,
+        afterPlacement: this.getPlacementString(afterResult),
+        afterTotalSales: afterResult.totalSales,
+        afterTotalProfit: afterResult.totalProfit,
+        salesDiff,
+        profitDiff,
+      });
+    }
+
+    this.matrixComparisonResults.set(results);
+    console.log('マトリクス比較結果:', results);
+  }
+
+  exportPlacementToCsv(): void {
+    const rows: string[] = ['ID,営業力,管理力,開拓力,育成力,人件費,配置先'];
+
+    for (const emp of this.employees()) {
+      const row = [
+        emp.id,
+        emp.salesPower.toFixed(1),
+        emp.managementPower.toFixed(1),
+        emp.pioneeringPower.toFixed(1),
+        emp.trainingPower.toFixed(1),
+        emp.laborCost.toString(),
+        emp.assignedDept,
+      ];
+      rows.push(row.join(','));
+    }
+
+    const csvContent = rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'placement_result.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   private parseCSV(csvText: string): { employees: Employee[]; error?: string } {
