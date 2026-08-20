@@ -91,20 +91,8 @@
     <div class="main-wrapper">
       <!-- 左側：事業部エリア（75%） -->
       <div class="left-section">
-        <!-- ファイル未選択時のメッセージ -->
-        <div *ngIf="employees().length === 0" class="empty-state-guide">
-          <div class="empty-state-content">
-            <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.5;">📁</div>
-            <h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: #1a1a1a;">ファイルを選択してください</h2>
-            <p style="margin: 0; font-size: 13px; color: #666; line-height: 1.6;">
-              CSVファイルをアップロードして、人材配置シミュレーションを開始します。<br>
-              ヘッダーの「ファイルを選択」ボタンからアップロードできます。
-            </p>
-          </div>
-        </div>
-
         <!-- 全社サマリー -->
-        <div class="summary-bar" *ngIf="employees().length > 0 && simulationResult() as result">
+        <div class="summary-bar" *ngIf="simulationResult() as result">
           <div class="summary-item">
             <span class="summary-label">全社売上</span>
             <span class="summary-value" [ngStyle]="{ 'color': optimizationExecuted() && result.totalSales < minTotalSales ? '#dc3545' : '#2196f3' }">
@@ -121,15 +109,8 @@
 
         <!-- 事業部カード（縦積み） -->
         <div class="dept-cards-container">
-          <!-- スケルトンローディング（ファイル未選択時） -->
-          <div *ngIf="employees().length === 0" class="dept-skeleton">
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-          </div>
-
           <!-- A事業部 -->
-          <div class="dept-card-large" *ngIf="employees().length > 0 && simulationResult() as result">
+          <div class="dept-card-large" *ngIf="simulationResult() as result">
             <div class="dept-header">
               <h3 class="dept-name">A事業部</h3>
             </div>
@@ -188,7 +169,7 @@
           </div>
 
           <!-- B事業部 -->
-          <div class="dept-card-large" *ngIf="employees().length > 0 && simulationResult() as result">
+          <div class="dept-card-large" *ngIf="simulationResult() as result">
             <div class="dept-header">
               <h3 class="dept-name" style="color: #17a2b8;">B事業部</h3>
             </div>
@@ -247,7 +228,7 @@
           </div>
 
           <!-- C事業部 -->
-          <div class="dept-card-large" *ngIf="employees().length > 0 && simulationResult() as result">
+          <div class="dept-card-large" *ngIf="simulationResult() as result">
             <div class="dept-header">
               <h3 class="dept-name" style="color: #ffc107;">C事業部</h3>
             </div>
@@ -315,13 +296,7 @@
             <span class="temp-badge">{{ employees().length > 0 ? tempEmployees.length : 0 }}名</span>
           </div>
           <div class="temp-list">
-            <div *ngIf="employees().length === 0" class="temp-placeholder">
-              <div style="text-align: center; padding: 40px 16px; color: #ccc;">
-                <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
-                <p style="margin: 0; font-size: 12px; line-height: 1.4;">ファイル選択後<br>ここに表示されます</p>
-              </div>
-            </div>
-            <div *ngIf="employees().length > 0 && tempEmployees.length === 0" class="temp-empty">
+            <div *ngIf="tempEmployees.length === 0" class="temp-empty">
               社員がいません
             </div>
             <div *ngFor="let emp of tempEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
