@@ -551,19 +551,24 @@ export class App implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('[App] ngOnInit started');
+
     this.authService.user$
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
+        console.log('[App] User updated:', user?.email || 'No user');
         this.currentUser.set(user);
       });
 
     this.authService.isAuthenticated$
       .pipe(takeUntil(this.destroy$))
       .subscribe(isAuth => {
+        console.log('[App] Authentication state changed:', isAuth);
         this.isAuthenticated.set(isAuth);
       });
 
     this.setupActivityListener();
+    console.log('[App] ngOnInit completed');
   }
 
   ngOnDestroy(): void {

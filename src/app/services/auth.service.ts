@@ -25,42 +25,52 @@ export class AuthService {
   private sessionTimeoutSubject = new BehaviorSubject<boolean>(false);
   public sessionTimeout$ = this.sessionTimeoutSubject.asObservable();
 
+  private initializationCompleteSubject = new BehaviorSubject<boolean>(false);
+  public initializationComplete$ = this.initializationCompleteSubject.asObservable();
+
   private sessionTimeoutTimer: any;
   private warningTimeoutTimer: any;
+  private auth: any;
 
   constructor() {
+    console.log('[AuthService] Constructor called');
     this.initializeFirebase();
   }
 
   private initializeFirebase(): void {
     try {
+      console.log('[AuthService] initializeFirebase started');
+
       if (!environment.firebase.apiKey || environment.firebase.apiKey === 'YOUR_API_KEY') {
         console.warn('Firebase configuration not set. Please update src/environments/environment.ts with your Firebase credentials.');
+        this.initializationCompleteSubject.next(true);
         return;
       }
 
       const app = initializeApp(environment.firebase);
-      const auth = getAuth(app);
+      this.auth = getAuth(app);
+      console.log('[AuthService] Firebase initialized');
 
       // リダイレクト結果を処理
-      getRedirectResult(auth)
+      getRedirectResult(this.auth)
         .then((result) => {
           if (result) {
-            console.log('Redirect login result:', result.user.email);
+            console.log('[AuthService] Redirect login result:', result.user.email);
           }
         })
         .catch((error) => {
           // ポップアップが閉じられたなどの一般的なエラーは無視
           if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/operation-not-supported-in-this-environment') {
-            console.error('Redirect result error:', error);
+            console.error('[AuthService] Redirect result error:', error);
           }
         });
 
       // 常に認証状態をリスニング
-      onAuthStateChanged(auth, (user) => {
-        console.log('Auth state changed:', user?.email || 'No user');
+      onAuthStateChanged(this.auth, (user) => {
+        console.log('[AuthService] onAuthStateChanged fired:', user?.email || 'No user');
         this.userSubject.next(user);
         this.isAuthenticatedSubject.next(!!user);
+        this.initializationCompleteSubject.next(true);
 
         if (user) {
           this.startSessionTimeout();
@@ -69,34 +79,40 @@ export class AuthService {
         }
       });
     } catch (error) {
-      console.error('Firebase initialization error:', error);
+      console.error('[AuthService] Firebase initialization error:', error);
+      this.initializationCompleteSubject.next(true);
     }
   }
 
   async loginWithGoogle(): Promise<void> {
     try {
+      console.log('[AuthService] loginWithGoogle called');
+
       if (!environment.firebase.apiKey || environment.firebase.apiKey === 'YOUR_API_KEY') {
         throw new Error('Firebase is not configured. Please set up your Firebase credentials in src/environments/environment.ts');
       }
 
-      const auth = getAuth();
+      const auth = this.auth || getAuth();
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
+      console.log('[AuthService] Redirecting to Google login...');
       await signInWithRedirect(auth, provider);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('[AuthService] Login error:', error);
       throw error;
     }
   }
 
   async logout(): Promise<void> {
     try {
+      console.log('[AuthService] logout called');
       this.clearSessionTimeout();
-      const auth = getAuth();
+      const auth = this.auth || getAuth();
       await signOut(auth);
+      console.log('[AuthService] Logout completed');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[AuthService] Logout error:', error);
       throw error;
     }
   }
