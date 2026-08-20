@@ -1,9 +1,31 @@
 <div class="container">
-  <!-- 認証セクション -->
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #e8e8e8;">
-    <h1 style="margin: 0; flex: 1;">人材配置シミュレーションアプリ</h1>
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <div *ngIf="isAuthenticated()" style="display: flex; align-items: center; gap: 12px;">
+  <!-- ログイン画面 -->
+  <div *ngIf="!isAuthenticated()" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 40px;">
+    <div style="text-align: center;">
+      <h1 style="font-size: 48px; color: #1a1a1a; margin: 0 0 16px 0; font-weight: 700;">人材配置シミュレーション</h1>
+      <p style="font-size: 18px; color: #666; margin: 0; line-height: 1.6;">
+        最適な人員配置を自動算出<br>
+        事業部の売上・利益を最大化
+      </p>
+    </div>
+    <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); text-align: center;">
+      <div style="font-size: 64px; margin-bottom: 24px;">📊</div>
+      <h2 style="font-size: 20px; color: #1a1a1a; margin: 0 0 24px 0; font-weight: 600;">はじめる</h2>
+      <p style="color: #666; margin: 0 0 32px 0; font-size: 14px;">Googleアカウントでログインしてください</p>
+      <button (click)="loginWithGoogle()" style="padding: 16px 48px; background-color: #4285f4; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; margin: 0 auto; box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);">
+        <span style="font-size: 20px;">🔐</span>
+        <span>Googleでログイン</span>
+      </button>
+      <p style="color: #999; margin: 32px 0 0 0; font-size: 12px;">セキュアで簡単なログイン</p>
+    </div>
+  </div>
+
+  <!-- ダッシュボード -->
+  <div *ngIf="isAuthenticated()">
+    <!-- ヘッダー -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #e8e8e8;">
+      <h1 style="margin: 0; flex: 1;">人材配置シミュレーションアプリ</h1>
+      <div style="display: flex; align-items: center; gap: 12px;">
         <div style="text-align: right;">
           <div style="font-size: 12px; color: #666; margin-bottom: 4px;">ログイン済み</div>
           <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">{{ currentUser()?.displayName || currentUser()?.email || 'ユーザー' }}</div>
@@ -12,16 +34,9 @@
           ログアウト
         </button>
       </div>
-      <div *ngIf="!isAuthenticated()">
-        <button (click)="loginWithGoogle()" style="padding: 8px 16px; background-color: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background-color 0.3s ease; display: flex; align-items: center; gap: 8px;">
-          <span>🔐</span>
-          <span>Googleでログイン</span>
-        </button>
-      </div>
     </div>
-  </div>
 
-  <!-- ファイル入力エリア -->
+    <!-- ファイル入力エリア -->
   <div class="file-input-section">
     <div class="file-input-group">
       <label>ファイルを選択 (100名)</label>
@@ -650,5 +665,6 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
 </div>
