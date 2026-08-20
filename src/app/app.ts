@@ -562,6 +562,8 @@ export class App implements OnInit, OnDestroy {
       .subscribe(isAuth => {
         this.isAuthenticated.set(isAuth);
       });
+
+    this.setupActivityListener();
   }
 
   ngOnDestroy(): void {
@@ -585,6 +587,18 @@ export class App implements OnInit, OnDestroy {
       console.error('Logout failed:', error);
       alert('ログアウトに失敗しました');
     }
+  }
+
+  private setupActivityListener(): void {
+    const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+
+    activityEvents.forEach(event => {
+      document.addEventListener(event, () => {
+        if (this.authService.isAuthenticated()) {
+          this.authService.resetSessionTimeout();
+        }
+      });
+    });
   }
 
   private createEmptyResult(): SimulationResult {

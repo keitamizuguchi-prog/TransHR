@@ -11,6 +11,8 @@ import {
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30分
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
@@ -18,6 +20,12 @@ export class AuthService {
 
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+
+  private sessionTimeoutSubject = new BehaviorSubject<boolean>(false);
+  public sessionTimeout$ = this.sessionTimeoutSubject.asObservable();
+
+  private sessionTimeoutTimer: any;
+  private warningTimeoutTimer: any;
 
   constructor() {
     this.initializeFirebase();
@@ -36,6 +44,12 @@ export class AuthService {
       onAuthStateChanged(auth, (user) => {
         this.userSubject.next(user);
         this.isAuthenticatedSubject.next(!!user);
+
+        if (user) {
+          this.startSessionTimeout();
+        } else {
+          this.clearSessionTimeout();
+        }
       });
     } catch (error) {
       console.error('Firebase initialization error:', error);
@@ -61,6 +75,7 @@ export class AuthService {
 
   async logout(): Promise<void> {
     try {
+      this.clearSessionTimeout();
       const auth = getAuth();
       await signOut(auth);
     } catch (error) {
@@ -75,5 +90,33 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return this.isAuthenticatedSubject.value;
+  }
+
+  private startSessionTimeout(): void {
+    this.resetSessionTimeout();
+  }
+
+  resetSessionTimeout(): void {
+    this.clearSessionTimeout();
+    this.sessionTimeoutSubject.next(false);
+
+    this.sessionTimeoutTimer = setTimeout(() => {
+      this.handleSessionTimeout();
+    }, SESSION_TIMEOUT);
+  }
+
+  private clearSessionTimeout(): void {
+    if (this.sessionTimeoutTimer) {
+      clearTimeout(this.sessionTimeoutTimer);
+    }
+    if (this.warningTimeoutTimer) {
+      clearTimeout(this.warningTimeoutTimer);
+    }
+  }
+
+  private handleSessionTimeout(): void {
+    this.logout().catch(error => {
+      console.error('Session timeout logout error:', error);
+    });
   }
 }
