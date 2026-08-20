@@ -3,8 +3,7 @@ import { initializeApp } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
   User,
@@ -51,21 +50,7 @@ export class AuthService {
       this.auth = getAuth(app);
       console.log('[AuthService] Firebase initialized');
 
-      // リダイレクト結果を処理
-      getRedirectResult(this.auth)
-        .then((result) => {
-          if (result) {
-            console.log('[AuthService] Redirect login result:', result.user.email);
-          }
-        })
-        .catch((error) => {
-          // ポップアップが閉じられたなどの一般的なエラーは無視
-          if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/operation-not-supported-in-this-environment') {
-            console.error('[AuthService] Redirect result error:', error);
-          }
-        });
-
-      // 常に認証状態をリスニング
+      // 認証状態をリスニング
       onAuthStateChanged(this.auth, (user) => {
         console.log('[AuthService] onAuthStateChanged fired:', user?.email || 'No user');
         this.userSubject.next(user);
@@ -96,8 +81,9 @@ export class AuthService {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
-      console.log('[AuthService] Redirecting to Google login...');
-      await signInWithRedirect(auth, provider);
+      console.log('[AuthService] Opening Google login popup...');
+      await signInWithPopup(auth, provider);
+      console.log('[AuthService] Login successful');
     } catch (error) {
       console.error('[AuthService] Login error:', error);
       throw error;
