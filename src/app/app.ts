@@ -471,6 +471,110 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       opacity: 0.6;
       cursor: not-allowed;
     }
+    /* ファイル未選択時のガイダンス */
+    .empty-state-guide {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+      border-radius: 8px;
+      border: 2px dashed #e2e8f0;
+    }
+    .empty-state-content {
+      text-align: center;
+      padding: 60px 40px;
+    }
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+    .empty-state-title {
+      margin: 0 0 12px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .empty-state-description {
+      margin: 0 0 16px 0;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+    .empty-state-hint {
+      padding: 12px 16px;
+      background-color: white;
+      border-radius: 6px;
+      border: 1px solid #e8e8e8;
+    }
+    /* スケルトンローディング */
+    .dept-cards-skeleton {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .skeleton-card {
+      height: 240px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes skeleton-loading {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+    .temp-empty-skeleton {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #ccc;
+    }
+    /* 空状態のガイド */
+    .empty-state-guide {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+      border-radius: 8px;
+      border: 2px dashed #e2e8f0;
+      margin-bottom: 16px;
+    }
+    .empty-state-content {
+      text-align: center;
+      padding: 60px 40px;
+    }
+    /* スケルトンローディング */
+    .dept-skeleton {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .skeleton-card {
+      height: 240px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .temp-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      background-color: transparent;
+    }
     /* アニメーション */
     @keyframes spin {
       to { transform: rotate(360deg); }
