@@ -42,32 +42,32 @@ export class AuthService {
       const app = initializeApp(environment.firebase);
       const auth = getAuth(app);
 
+      // リダイレクト結果を処理
       getRedirectResult(auth)
-        .then(() => {
-          onAuthStateChanged(auth, (user) => {
-            this.userSubject.next(user);
-            this.isAuthenticatedSubject.next(!!user);
-
-            if (user) {
-              this.startSessionTimeout();
-            } else {
-              this.clearSessionTimeout();
-            }
-          });
+        .then((result) => {
+          if (result) {
+            console.log('Redirect login result:', result.user.email);
+          }
         })
         .catch((error) => {
-          console.error('Redirect result error:', error);
-          onAuthStateChanged(auth, (user) => {
-            this.userSubject.next(user);
-            this.isAuthenticatedSubject.next(!!user);
-
-            if (user) {
-              this.startSessionTimeout();
-            } else {
-              this.clearSessionTimeout();
-            }
-          });
+          // ポップアップが閉じられたなどの一般的なエラーは無視
+          if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/operation-not-supported-in-this-environment') {
+            console.error('Redirect result error:', error);
+          }
         });
+
+      // 常に認証状態をリスニング
+      onAuthStateChanged(auth, (user) => {
+        console.log('Auth state changed:', user?.email || 'No user');
+        this.userSubject.next(user);
+        this.isAuthenticatedSubject.next(!!user);
+
+        if (user) {
+          this.startSessionTimeout();
+        } else {
+          this.clearSessionTimeout();
+        }
+      });
     } catch (error) {
       console.error('Firebase initialization error:', error);
     }
