@@ -1,8 +1,11 @@
 export type DepartmentId = 'A' | 'B' | 'C' | 'Temp';
 export type OptimizationObjective = 'totalSales' | 'deptAProfit' | 'deptBSales' | 'deptCSales';
 
+export type EmployeeSource = 'existing' | 'candidate';
+
 export interface Employee {
   id: string;
+  name: string;
   salesPower: number;
   managementPower: number;
   pioneeringPower: number;
@@ -10,6 +13,7 @@ export interface Employee {
   laborCost: number;
   assignedDept: DepartmentId;
   isLocked?: boolean;
+  source: EmployeeSource;
 }
 
 export interface DepartmentConfig {

@@ -25,21 +25,21 @@
     <header class="app-header">
       <div class="header-top">
         <div class="header-left">
-          <h1 class="header-title">📊 人材配置シミュレーション</h1>
+          <h1 class="header-title" (click)="goToDashboard()" style="cursor: pointer;">📊 人材配置シミュレーション</h1>
         </div>
         <div class="header-tabs">
           <button
             class="header-tab"
-            [class.active]="activeTab() === 'objective'"
-            (click)="activeTab.set('objective')"
+            [class.active]="currentScreen() === 'objective'"
+            (click)="goToObjectiveComparison()"
             [disabled]="isProcessing()"
           >
             目的別比較
           </button>
           <button
             class="header-tab"
-            [class.active]="activeTab() === 'matrix'"
-            (click)="activeTab.set('matrix')"
+            [class.active]="currentScreen() === 'matrix'"
+            (click)="goToMatrixComparison()"
             [disabled]="isProcessing()"
           >
             採用前後比較
@@ -61,42 +61,52 @@
         </div>
       </div>
 
-      <div class="header-bottom">
+      <div class="header-bottom" *ngIf="currentScreen() === 'dashboard'">
         <div class="header-bottom-left">
-          <!-- ファイルを選択 -->
-          <label class="file-label">
-            <input
-              #mainFileInput
-              type="file"
-              accept=".csv"
-              (change)="onFileSelected($event)"
-              style="display: none;"
-            />
-            📁 ファイルを選択
-          </label>
-          <!-- ファイル名表示 -->
-          <span *ngIf="mainFileName()" class="file-name">{{ mainFileName() }}</span>
-          <!-- 2番目のファイルを選択 -->
-          <label class="file-label" *ngIf="employees().length > 0 && !additionalFileLoaded">
-            <input
-              #additionalFileInput
-              type="file"
-              accept=".csv"
-              (change)="onAdditionalFileSelected($event)"
-              style="display: none;"
-            />
-            📁 ファイルを選択
-          </label>
-          <!-- 追加ファイル名表示 -->
-          <span *ngIf="additionalFileName()" class="file-name">{{ additionalFileName() }}</span>
-          <!-- ファイル取り消し -->
-          <button
-            *ngIf="employees().length > 0"
-            (click)="clearMainFile()"
-            class="header-button header-button-secondary"
-          >
-            ファイル取り消し
-          </button>
+          <!-- 従業員ファイルを選択 -->
+          <div class="file-row">
+            <label class="file-label" [class.file-label-disabled]="mainFileName() !== ''">
+              <input
+                #mainFileInput
+                type="file"
+                accept=".csv"
+                (change)="onFileSelected($event)"
+                [disabled]="mainFileName() !== ''"
+                style="display: none;"
+              />
+              📁 従業員ファイルを選択
+            </label>
+            <span *ngIf="mainFileName()" class="file-name">{{ mainFileName() }}</span>
+            <button
+              *ngIf="mainFileName() !== ''"
+              (click)="clearEmployeeFile()"
+              class="header-button header-button-danger"
+            >
+              取り消し
+            </button>
+          </div>
+          <!-- 採用予定ファイルを選択 -->
+          <div class="file-row">
+            <label class="file-label" [class.file-label-disabled]="additionalFileLoaded()">
+              <input
+                #additionalFileInput
+                type="file"
+                accept=".csv"
+                (change)="onAdditionalFileSelected($event)"
+                [disabled]="additionalFileLoaded()"
+                style="display: none;"
+              />
+              📁 採用予定ファイルを選択
+            </label>
+            <span *ngIf="additionalFileName()" class="file-name">{{ additionalFileName() }}</span>
+            <button
+              *ngIf="additionalFileLoaded()"
+              (click)="clearCandidateFile()"
+              class="header-button header-button-danger"
+            >
+              取り消し
+            </button>
+          </div>
         </div>
 
         <div class="header-bottom-right">
@@ -125,8 +135,8 @@
       </div>
     </header>
 
-    <!-- メイン画面 -->
-    <div class="main-wrapper">
+    <!-- メイン画面（ダッシュボード） -->
+    <div class="main-wrapper" *ngIf="currentScreen() === 'dashboard'">
       <!-- 左側：事業部エリア（75%） -->
       <div class="left-section">
         <!-- 全社サマリー -->
@@ -162,18 +172,39 @@
                   </span>
                 </div>
                 <div class="stat-item">
+                  <span class="stat-label">適正人数</span>
+                  <span class="stat-value">{{ deptConfig['A'].optimalCount }}名</span>
+                </div>
+                <div class="stat-item">
                   <span class="stat-label">充足率</span>
                   <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '#ff6b00' : '#1a1a1a' }">
                     {{ optimizationExecuted() ? (result.deptA.fulfillmentRate | number:'1.1-1') : '‐' }}%
                   </span>
                 </div>
                 <div class="stat-item">
+                  <span class="stat-label">最低配置人数</span>
+                  <span class="stat-value">{{ deptConfig['A'].minCount }}名</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
                   <span class="stat-label">基本売上</span>
                   <span class="stat-value">
                     {{ optimizationExecuted() ? (result.deptA.baseSales | number:'1.1-1') : '‐' }}億
                   </span>
                 </div>
-                <div class="stat-item stat-profit">
+                <div class="stat-item">
+                  <span class="stat-label">最終売上</span>
+                  <span class="stat-value">
+                    {{ optimizationExecuted() ? (result.deptA.finalSales | number:'1.1-1') : '‐' }}億
+                  </span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">コスト</span>
+                  <span class="stat-value">
+                    {{ optimizationExecuted() ? (result.deptA.deptCost | number:'1.1-1') : '‐' }}億
+                  </span>
+                </div>
+                <div class="stat-item">
                   <span class="stat-label">利益</span>
                   <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptA.profit < 0 ? '#dc3545' : '#28a745' }">
                     {{ optimizationExecuted() ? (result.deptA.profit | number:'1.1-1') : '‐' }}億
@@ -183,7 +214,7 @@
               <!-- 右側：従業員グリッド -->
               <div class="employees-grid">
                 <div *ngFor="let emp of deptAEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
-                  <div class="emp-id">{{ emp.id }}</div>
+                  <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
                   <div class="emp-abilities">
                     <div>営{{ emp.salesPower.toFixed(1) }}</div>
                     <div>管{{ emp.managementPower.toFixed(1) }}</div>
@@ -221,18 +252,39 @@
                   </span>
                 </div>
                 <div class="stat-item">
+                  <span class="stat-label">適正人数</span>
+                  <span class="stat-value">{{ deptConfig['B'].optimalCount }}名</span>
+                </div>
+                <div class="stat-item">
                   <span class="stat-label">充足率</span>
                   <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '#ff6b00' : '#1a1a1a' }">
                     {{ optimizationExecuted() ? (result.deptB.fulfillmentRate | number:'1.1-1') : '‐' }}%
                   </span>
                 </div>
                 <div class="stat-item">
+                  <span class="stat-label">最低配置人数</span>
+                  <span class="stat-value">{{ deptConfig['B'].minCount }}名</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
                   <span class="stat-label">基本売上</span>
                   <span class="stat-value">
                     {{ optimizationExecuted() ? (result.deptB.baseSales | number:'1.1-1') : '‐' }}億
                   </span>
                 </div>
-                <div class="stat-item stat-profit">
+                <div class="stat-item">
+                  <span class="stat-label">最終売上</span>
+                  <span class="stat-value">
+                    {{ optimizationExecuted() ? (result.deptB.finalSales | number:'1.1-1') : '‐' }}億
+                  </span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">コスト</span>
+                  <span class="stat-value">
+                    {{ optimizationExecuted() ? (result.deptB.deptCost | number:'1.1-1') : '‐' }}億
+                  </span>
+                </div>
+                <div class="stat-item">
                   <span class="stat-label">利益</span>
                   <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptB.profit < 0 ? '#dc3545' : '#28a745' }">
                     {{ optimizationExecuted() ? (result.deptB.profit | number:'1.1-1') : '‐' }}億
@@ -242,7 +294,7 @@
               <!-- 右側：従業員グリッド -->
               <div class="employees-grid">
                 <div *ngFor="let emp of deptBEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
-                  <div class="emp-id">{{ emp.id }}</div>
+                  <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
                   <div class="emp-abilities">
                     <div>営{{ emp.salesPower.toFixed(1) }}</div>
                     <div>管{{ emp.managementPower.toFixed(1) }}</div>
@@ -280,18 +332,39 @@
                   </span>
                 </div>
                 <div class="stat-item">
+                  <span class="stat-label">適正人数</span>
+                  <span class="stat-value">{{ deptConfig['C'].optimalCount }}名</span>
+                </div>
+                <div class="stat-item">
                   <span class="stat-label">充足率</span>
                   <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '#ff6b00' : '#1a1a1a' }">
                     {{ optimizationExecuted() ? (result.deptC.fulfillmentRate | number:'1.1-1') : '‐' }}%
                   </span>
                 </div>
                 <div class="stat-item">
+                  <span class="stat-label">最低配置人数</span>
+                  <span class="stat-value">{{ deptConfig['C'].minCount }}名</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
                   <span class="stat-label">基本売上</span>
                   <span class="stat-value">
                     {{ optimizationExecuted() ? (result.deptC.baseSales | number:'1.1-1') : '‐' }}億
                   </span>
                 </div>
-                <div class="stat-item stat-profit">
+                <div class="stat-item">
+                  <span class="stat-label">最終売上</span>
+                  <span class="stat-value">
+                    {{ optimizationExecuted() ? (result.deptC.finalSales | number:'1.1-1') : '‐' }}億
+                  </span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">コスト</span>
+                  <span class="stat-value">
+                    {{ optimizationExecuted() ? (result.deptC.deptCost | number:'1.1-1') : '‐' }}億
+                  </span>
+                </div>
+                <div class="stat-item">
                   <span class="stat-label">利益</span>
                   <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptC.profit < 0 ? '#dc3545' : '#28a745' }">
                     {{ optimizationExecuted() ? (result.deptC.profit | number:'1.1-1') : '‐' }}億
@@ -301,7 +374,7 @@
               <!-- 右側：従業員グリッド -->
               <div class="employees-grid">
                 <div *ngFor="let emp of deptCEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
-                  <div class="emp-id">{{ emp.id }}</div>
+                  <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
                   <div class="emp-abilities">
                     <div>営{{ emp.salesPower.toFixed(1) }}</div>
                     <div>管{{ emp.managementPower.toFixed(1) }}</div>
@@ -326,19 +399,28 @@
         </div>
       </div>
 
-      <!-- 右側：一時置き場（25%） -->
-      <div class="right-section">
-        <div class="temp-panel">
-          <div class="temp-header">
-            <h3 class="temp-title">一時置き場</h3>
-            <span class="temp-badge">{{ employees().length > 0 ? tempEmployees.length : 0 }}名</span>
+      <!-- 右側：一時置き場（開閉型） -->
+      <div class="right-section" [ngClass]="{ 'collapsed': !tempPanelOpen() }">
+        <div class="temp-panel" [ngClass]="{ 'collapsed': !tempPanelOpen() }">
+          <div class="temp-header" [ngClass]="{ 'collapsed': !tempPanelOpen() }">
+            <ng-container *ngIf="tempPanelOpen(); else collapsedHeader">
+              <h3 class="temp-title">一時置き場</h3>
+              <span class="temp-badge">{{ employees().length > 0 ? tempEmployees.length : 0 }}名</span>
+              <button type="button" class="temp-toggle-btn" (click)="toggleTempPanel()" title="一時置き場を閉じる">▶</button>
+            </ng-container>
+            <ng-template #collapsedHeader>
+              <button type="button" class="temp-toggle-btn" (click)="toggleTempPanel()" title="一時置き場を開く">◀</button>
+              <h3 class="temp-title-vertical">一時置き場</h3>
+              <span class="temp-badge">{{ employees().length > 0 ? tempEmployees.length : 0 }}名</span>
+            </ng-template>
           </div>
-          <div class="temp-list">
+          <div class="temp-list" *ngIf="tempPanelOpen()">
             <div *ngIf="tempEmployees.length === 0" class="temp-empty">
               社員がいません
             </div>
-            <div *ngFor="let emp of tempEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
-              <div class="emp-id">{{ emp.id }}</div>
+            <div *ngFor="let emp of tempEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
+              <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
+              <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
               <div class="emp-abilities">
                 <div>営{{ emp.salesPower.toFixed(1) }}</div>
                 <div>管{{ emp.managementPower.toFixed(1) }}</div>
@@ -362,9 +444,12 @@
       </div>
     </div>
 
-    <!-- 下部：比較テーブル -->
-    <div class="comparison-sections" *ngIf="activeTab() === 'objective' && objectiveComparisonResults().length > 0">
-      <div class="comparison-section">
+    <!-- 目的別比較画面 -->
+    <div class="comparison-sections" *ngIf="currentScreen() === 'objective'" style="flex: 1;">
+      <div class="comparison-section" *ngIf="objectiveComparisonResults().length === 0">
+        <p>計算中...</p>
+      </div>
+      <div class="comparison-section" *ngIf="objectiveComparisonResults().length > 0">
         <h2 class="section-title">目的別結果比較</h2>
         <div class="comparison-table-wrapper">
           <table class="comparison-table">
@@ -399,9 +484,12 @@
       </div>
     </div>
 
-    <!-- 下部：採用前後比較テーブル -->
-    <div class="comparison-sections" *ngIf="activeTab() === 'matrix' && matrixComparisonResults().length > 0">
-      <div class="comparison-section">
+    <!-- 採用前後比較画面 -->
+    <div class="comparison-sections" *ngIf="currentScreen() === 'matrix'" style="flex: 1;">
+      <div class="comparison-section" *ngIf="matrixComparisonResults().length === 0">
+        <p>計算中...</p>
+      </div>
+      <div class="comparison-section" *ngIf="matrixComparisonResults().length > 0">
         <h2 class="section-title">採用前後結果比較</h2>
         <div class="comparison-table-wrapper">
           <table class="comparison-table">

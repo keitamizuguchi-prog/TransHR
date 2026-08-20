@@ -207,13 +207,30 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
     }
     .header-bottom-left {
       display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .file-row {
+      display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
     .header-bottom-right {
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+    .file-label-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .header-button-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+    .header-button-danger:hover {
+      background-color: #c82333;
     }
     /* メイン画面ラッパー */
     .main-wrapper {
@@ -287,45 +304,48 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       display: flex;
       min-height: 200px;
     }
-    /* 左側：統計情報パネル（30%） */
+    /* 左側：統計情報パネル（40%・2列グリッド） */
     .dept-stats-panel {
-      flex: 0 0 30%;
+      flex: 0 0 40%;
       padding: 14px;
       border-right: 1px solid #f0f4f8;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+      align-content: start;
       background-color: #fafbfc;
     }
     .stat-item {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 2px;
       font-size: 12px;
     }
     .stat-label {
       color: #666;
       font-weight: 600;
       flex-shrink: 0;
+      font-size: 11px;
     }
     .stat-value {
       color: #1a1a1a;
       font-weight: 600;
-      text-align: right;
+      text-align: left;
+      font-size: 13px;
     }
-    .stat-profit {
-      padding-top: 8px;
+    .stat-divider {
+      grid-column: 1 / -1;
       border-top: 1px solid #e0e0e0;
-      margin-top: 4px;
+      margin-top: 2px;
     }
-    /* 右側：従業員グリッド（70%） */
+    /* 右側：従業員グリッド（残り幅いっぱい） */
     .employees-grid {
-      flex: 0 0 70%;
+      flex: 1 1 0;
+      min-width: 0;
       padding: 14px;
       overflow-y: auto;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
       gap: 8px;
       align-content: start;
     }
@@ -348,10 +368,27 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       background-color: #fffbf0;
       border-color: #ffc107;
     }
+    .employee-mini-card.candidate {
+      background-color: #f0f7ff;
+      border-color: #90caf9;
+    }
+    .candidate-badge {
+      align-self: flex-start;
+      font-size: 8px;
+      font-weight: 700;
+      color: #1565c0;
+      background-color: #bbdefb;
+      padding: 1px 5px;
+      border-radius: 8px;
+    }
     .emp-id {
       font-weight: 700;
       color: #1a1a1a;
       text-align: center;
+      font-size: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .emp-abilities {
       font-size: 9px;
@@ -372,6 +409,10 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      transition: flex-basis 0.2s ease;
+    }
+    .right-section.collapsed {
+      flex: 0 0 auto;
     }
     /* 一時置き場パネル */
     .temp-panel {
@@ -384,6 +425,9 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       height: 100%;
       overflow: hidden;
     }
+    .temp-panel.collapsed {
+      width: 44px;
+    }
     .temp-header {
       padding: 12px 16px;
       background-color: #f8fafc;
@@ -391,12 +435,28 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+    }
+    .temp-header.collapsed {
+      flex-direction: column;
+      padding: 12px 8px;
+      border-bottom: none;
+      height: 100%;
+      justify-content: flex-start;
     }
     .temp-title {
       margin: 0;
       font-size: 14px;
       font-weight: 700;
       color: #1a1a1a;
+    }
+    .temp-title-vertical {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1a1a1a;
+      writing-mode: vertical-rl;
+      letter-spacing: 1px;
     }
     .temp-badge {
       font-size: 11px;
@@ -405,6 +465,23 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       padding: 2px 8px;
       border-radius: 12px;
       font-weight: 600;
+    }
+    .temp-toggle-btn {
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      color: #555;
+      flex-shrink: 0;
+    }
+    .temp-toggle-btn:hover {
+      background-color: #eef2f7;
     }
     .temp-list {
       flex: 1;
@@ -606,7 +683,8 @@ export class App implements OnInit, OnDestroy {
   protected minTotalSales = MIN_TOTAL_SALES;
   protected selectedObjective: OptimizationObjective = 'totalSales';
   protected optimizationReason: string = '';
-  protected activeTab = signal<'objective' | 'matrix'>('objective');
+  protected currentScreen = signal<'dashboard' | 'objective' | 'matrix'>('dashboard');
+  protected tempPanelOpen = signal<boolean>(true);
 
   constructor(
     private calculatorService: CalculatorService,
@@ -655,6 +733,24 @@ export class App implements OnInit, OnDestroy {
       console.error('Logout failed:', error);
       alert('ログアウトに失敗しました');
     }
+  }
+
+  goToDashboard(): void {
+    this.currentScreen.set('dashboard');
+  }
+
+  toggleTempPanel(): void {
+    this.tempPanelOpen.update(open => !open);
+  }
+
+  goToObjectiveComparison(): void {
+    this.currentScreen.set('objective');
+    this.runAllOptimizationsComparison();
+  }
+
+  goToMatrixComparison(): void {
+    this.currentScreen.set('matrix');
+    this.runMatrixComparison();
   }
 
   private setupActivityListener(): void {
@@ -735,6 +831,12 @@ export class App implements OnInit, OnDestroy {
 
     const fileName = file.name;
 
+    if (this.additionalFileName() !== '' && fileName === this.additionalFileName()) {
+      alert('採用予定ファイルと同じファイルは選択できません。');
+      event.target.value = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const csvText = e.target?.result as string;
@@ -748,12 +850,13 @@ export class App implements OnInit, OnDestroy {
 
       const newEmployees = parseResult.employees;
 
-      // 新しい社員を全員Tempに設定
+      // 新しい社員を全員Temp（一時置き場）に設定
       for (let i = 0; i < newEmployees.length; i++) {
         newEmployees[i].assignedDept = 'Temp';
+        newEmployees[i].source = 'existing';
       }
 
-      // 既存の社員と新しい社員を統合
+      // 既存の社員と新しい社員を統合（一時置き場に追加するのみ、配置計算は行わない）
       const currentEmployees = this.employees();
       const combinedEmployees = [...currentEmployees, ...newEmployees];
 
@@ -765,28 +868,31 @@ export class App implements OnInit, OnDestroy {
       }
 
       this.employees.set(combinedEmployees);
-      this.updateSimulation();
-      console.log('社員数:', combinedEmployees.length, '計算結果:', this.simulationResult());
+      this.mainEmployees.set(combinedEmployees);
+      this.tempPanelOpen.set(true);
+      console.log('従業員ファイル読み込み完了。一時置き場に追加された社員数:', newEmployees.length);
     };
     reader.readAsText(file);
   }
 
-  clearMainFile(): void {
+  clearEmployeeFile(): void {
     this.mainFileInput.nativeElement.value = '';
-    this.employees.set([]);
+    const remainingEmployees = this.employees().filter((emp) => emp.source !== 'existing');
+    this.employees.set(remainingEmployees);
+    this.mainEmployees.set([]);
+    this.mainFileName.set('');
     this.simulationResult.set(this.createEmptyResult());
     this.objectiveComparisonResults.set([]);
     this.matrixComparisonResults.set([]);
-    this.mainFileName.set('');
     this.optimizationExecuted.set(false);
+  }
+
+  clearCandidateFile(): void {
     if (this.additionalFileInput) {
       this.additionalFileInput.nativeElement.value = '';
     }
-  }
-
-  clearAdditionalFile(): void {
-    this.additionalFileInput.nativeElement.value = '';
-    this.employees.set([...this.mainEmployees()]);
+    const remainingEmployees = this.employees().filter((emp) => emp.source !== 'candidate');
+    this.employees.set(remainingEmployees);
     this.additionalFileLoaded.set(false);
     this.additionalFileName.set('');
     this.matrixComparisonResults.set([]);
@@ -798,6 +904,12 @@ export class App implements OnInit, OnDestroy {
     if (!file) return;
 
     const fileName = file.name;
+
+    if (this.mainFileName() !== '' && fileName === this.mainFileName()) {
+      alert('従業員ファイルと同じファイルは選択できません。');
+      event.target.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -814,13 +926,15 @@ export class App implements OnInit, OnDestroy {
 
       additionalEmployees.forEach((emp) => {
         emp.assignedDept = 'Temp';
+        emp.source = 'candidate';
       });
 
-      // 現在の状態を保持して、追加ファイルの社員を統合
+      // 現在の状態を保持して、採用予定ファイルの社員を一時置き場に追加するのみ（配置計算は行わない）
       const currentEmployees = this.employees();
       const updatedEmployees = [...currentEmployees, ...additionalEmployees];
       this.employees.set(updatedEmployees);
       this.additionalFileLoaded.set(true);
+      this.tempPanelOpen.set(true);
 
       // 追加ファイル名を更新
       if (this.additionalFileName() === '') {
@@ -829,8 +943,7 @@ export class App implements OnInit, OnDestroy {
         this.additionalFileName.set(this.additionalFileName() + ', ' + fileName);
       }
 
-      this.updateSimulation();
-      console.log('追加候補者読み込み完了:', this.simulationResult());
+      console.log('採用予定ファイル読み込み完了。一時置き場に追加された採用候補者数:', additionalEmployees.length);
     };
     reader.readAsText(file);
   }
@@ -942,6 +1055,7 @@ export class App implements OnInit, OnDestroy {
       this.optimizationExecuted.set(true);
       this.updateSimulation();
       this.isProcessing.set(false);
+      this.tempPanelOpen.set(false);
     }, 100);
   }
 
@@ -1100,11 +1214,12 @@ export class App implements OnInit, OnDestroy {
   }
 
   exportPlacementToCsv(): void {
-    const rows: string[] = ['ID,営業力,管理力,開拓力,育成力,人件費,配置先'];
+    const rows: string[] = ['ID,氏名,営業力,管理力,開拓力,育成力,人件費,配置先'];
 
     for (const emp of this.employees()) {
       const row = [
         emp.id,
+        emp.name,
         emp.salesPower.toFixed(1),
         emp.managementPower.toFixed(1),
         emp.pioneeringPower.toFixed(1),
@@ -1140,18 +1255,18 @@ export class App implements OnInit, OnDestroy {
       const line = dataLines[i];
       const values = line.split(',').map((v) => v.trim());
 
-      if (values.length < 6) {
+      if (values.length < 7) {
         return {
           employees: [],
           error: `CSVの${i + 2}行目のデータが不正です。（例: 能力値は0〜100、人件費は1〜20の範囲で入力してください）`,
         };
       }
 
-      const salesPower = parseFloat(values[1]);
-      const managementPower = parseFloat(values[2]);
-      const pioneeringPower = parseFloat(values[3]);
-      const trainingPower = parseFloat(values[4]);
-      const laborCost = parseFloat(values[5]);
+      const salesPower = parseFloat(values[2]);
+      const managementPower = parseFloat(values[3]);
+      const pioneeringPower = parseFloat(values[4]);
+      const trainingPower = parseFloat(values[5]);
+      const laborCost = parseFloat(values[6]);
 
       if (
         isNaN(salesPower) ||
@@ -1191,12 +1306,14 @@ export class App implements OnInit, OnDestroy {
 
       employees.push({
         id: values[0],
+        name: values[1],
         salesPower,
         managementPower,
         pioneeringPower,
         trainingPower,
         laborCost,
         assignedDept: 'Temp',
+        source: 'existing',
         isLocked: false,
       });
     }
