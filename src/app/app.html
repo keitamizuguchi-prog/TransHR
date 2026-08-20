@@ -170,8 +170,8 @@
         <div *ngIf="optimizationExecuted() && result.deptA.headcount < deptConfig['A'].minCount" style="color: #dc3545; font-size: 12px; margin: 8px 0; font-weight: 600;">
           ⚠️ 最低人数未達
         </div>
-        <div class="dept-card-row" [ngStyle]="{ 'background-color': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '#fff3cd' : 'transparent', 'border-color': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '#ffc107' : '#f0f0f0', 'border-radius': '4px', 'padding': '12px 8px', 'margin': '8px -8px' }">
-          <label [ngStyle]="{ 'color': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit' }">充足率</label>
+        <div class="dept-card-row">
+          <label [ngStyle]="{ 'color': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit', 'font-weight': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '700' : '400' }">充足率</label>
           <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit', 'font-weight': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '700' : '500' }">
             <span *ngIf="optimizationExecuted()">{{ result.deptA.fulfillmentRate | number:'1.1-1' }}%</span>
             <span *ngIf="!optimizationExecuted()">‐</span>
@@ -231,8 +231,8 @@
         <div *ngIf="optimizationExecuted() && result.deptB.headcount < deptConfig['B'].minCount" style="color: #dc3545; font-size: 12px; margin: 8px 0; font-weight: 600;">
           ⚠️ 最低人数未達
         </div>
-        <div class="dept-card-row" [ngStyle]="{ 'background-color': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '#fff3cd' : 'transparent', 'border-color': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '#ffc107' : '#f0f0f0', 'border-radius': '4px', 'padding': '12px 8px', 'margin': '8px -8px' }">
-          <label [ngStyle]="{ 'color': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit' }">充足率</label>
+        <div class="dept-card-row">
+          <label [ngStyle]="{ 'color': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit', 'font-weight': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '700' : '400' }">充足率</label>
           <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit', 'font-weight': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '700' : '500' }">
             <span *ngIf="optimizationExecuted()">{{ result.deptB.fulfillmentRate | number:'1.1-1' }}%</span>
             <span *ngIf="!optimizationExecuted()">‐</span>
@@ -292,8 +292,8 @@
         <div *ngIf="optimizationExecuted() && result.deptC.headcount < deptConfig['C'].minCount" style="color: #dc3545; font-size: 12px; margin: 8px 0; font-weight: 600;">
           ⚠️ 最低人数未達
         </div>
-        <div class="dept-card-row" [ngStyle]="{ 'background-color': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '#fff3cd' : 'transparent', 'border-color': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '#ffc107' : '#f0f0f0', 'border-radius': '4px', 'padding': '12px 8px', 'margin': '8px -8px' }">
-          <label [ngStyle]="{ 'color': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit' }">充足率</label>
+        <div class="dept-card-row">
+          <label [ngStyle]="{ 'color': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit', 'font-weight': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '700' : '400' }">充足率</label>
           <span class="value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '#ff6b00' : 'inherit', 'font-weight': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '700' : '500' }">
             <span *ngIf="optimizationExecuted()">{{ result.deptC.fulfillmentRate | number:'1.1-1' }}%</span>
             <span *ngIf="!optimizationExecuted()">‐</span>
