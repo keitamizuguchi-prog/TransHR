@@ -1,6 +1,53 @@
-# NewApp
+# 人材配置シミュレーションアプリ
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.3.
+
+## Firebase設定（重要）
+
+Google認証機能を使用するには、以下の手順でFirebaseを設定してください。
+
+### 1. Firebaseプロジェクトの作成
+1. [Firebase Console](https://console.firebase.google.com/)にアクセスしてログイン
+2. 「プロジェクトを作成」をクリック
+3. プロジェクト名を入力し、Googleアナリティクスは任意
+
+### 2. ウェブアプリの登録
+1. Firebaseコンソール内で、「ウェブアプリを追加」を選択
+2. アプリの設定画面から、以下の情報をコピー：
+   - apiKey
+   - authDomain
+   - projectId
+   - storageBucket
+   - messagingSenderId
+   - appId
+
+### 3. 認証情報の設定
+1. `src/environments/environment.ts`ファイルを開く
+2. 上記の情報を対応するフィールドに貼り付け
+
+```typescript
+export const environment = {
+  production: false,
+  firebase: {
+    apiKey: 'YOUR_API_KEY',           // ← 実際の値に置き換え
+    authDomain: 'YOUR_AUTH_DOMAIN',   // ← 実際の値に置き換え
+    projectId: 'YOUR_PROJECT_ID',     // ← 実際の値に置き換え
+    storageBucket: 'YOUR_STORAGE_BUCKET',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
+    appId: 'YOUR_APP_ID',
+  },
+};
+```
+
+### 4. Google認証の有効化
+1. Firebaseコンソールの「認証」セクションを開く
+2. 「Sign-in method」タブで「Google」を選択
+3. 「有効にする」をオンにする
+4. 「プロジェクトサポートメール」を選択して保存
+
+### 5. 認可設定
+1. Firebaseコンソール → 「プロジェクト設定」
+2. 「承認済みドメイン」に `localhost:4200` を追加
 
 ## Development server
 

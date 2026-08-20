@@ -9,6 +9,7 @@ export interface Employee {
   trainingPower: number;
   laborCost: number;
   assignedDept: DepartmentId;
+  isLocked?: boolean;
 }
 
 export interface DepartmentConfig {
@@ -32,6 +33,7 @@ export interface DeptMetrics {
   finalSales: number;
   deptCost: number;
   profit: number;
+  fulfillmentRate?: number;
 }
 
 export interface SimulationResult {
