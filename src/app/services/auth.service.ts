@@ -3,7 +3,8 @@ import { initializeApp } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
   User,
@@ -41,16 +42,32 @@ export class AuthService {
       const app = initializeApp(environment.firebase);
       const auth = getAuth(app);
 
-      onAuthStateChanged(auth, (user) => {
-        this.userSubject.next(user);
-        this.isAuthenticatedSubject.next(!!user);
+      getRedirectResult(auth)
+        .then(() => {
+          onAuthStateChanged(auth, (user) => {
+            this.userSubject.next(user);
+            this.isAuthenticatedSubject.next(!!user);
 
-        if (user) {
-          this.startSessionTimeout();
-        } else {
-          this.clearSessionTimeout();
-        }
-      });
+            if (user) {
+              this.startSessionTimeout();
+            } else {
+              this.clearSessionTimeout();
+            }
+          });
+        })
+        .catch((error) => {
+          console.error('Redirect result error:', error);
+          onAuthStateChanged(auth, (user) => {
+            this.userSubject.next(user);
+            this.isAuthenticatedSubject.next(!!user);
+
+            if (user) {
+              this.startSessionTimeout();
+            } else {
+              this.clearSessionTimeout();
+            }
+          });
+        });
     } catch (error) {
       console.error('Firebase initialization error:', error);
     }
@@ -66,7 +83,7 @@ export class AuthService {
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
