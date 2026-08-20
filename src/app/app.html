@@ -23,29 +23,47 @@
   <ng-container *ngIf="isAuthenticated()">
     <!-- ヘッダー -->
     <header class="app-header">
-      <div class="header-left">
-        <h1 class="header-title">📊 人材配置シミュレーション</h1>
-      </div>
-      <div class="header-controls">
-        <!-- 目的選択とボタン -->
-        <div class="header-control-group" *ngIf="employees().length > 0">
-          <select
-            id="objective-select"
-            [(ngModel)]="selectedObjective"
-            class="header-select"
+      <div class="header-top">
+        <div class="header-left">
+          <h1 class="header-title">📊 人材配置シミュレーション</h1>
+        </div>
+        <div class="header-tabs">
+          <button
+            class="header-tab"
+            [class.active]="activeTab() === 'objective'"
+            (click)="activeTab.set('objective')"
             [disabled]="isProcessing()"
           >
-            <option value="totalSales">全社売上最大化</option>
-            <option value="deptAProfit">A事業部利益最大化</option>
-            <option value="deptBSales">B事業部売上最大化</option>
-            <option value="deptCSales">C事業部売上最大化</option>
-          </select>
-          <button (click)="runOptimization()" class="header-button header-button-primary" [disabled]="isProcessing()">
-            {{ isProcessing() ? '処理中...' : '最適配置を自動算出' }}
+            目的別比較
+          </button>
+          <button
+            class="header-tab"
+            [class.active]="activeTab() === 'matrix'"
+            (click)="activeTab.set('matrix')"
+            [disabled]="isProcessing()"
+          >
+            採用前後比較
           </button>
         </div>
-        <!-- ファイル選択 -->
-        <div class="header-control-group">
+        <div class="header-right">
+          <button
+            *ngIf="employees().length > 0"
+            (click)="exportPlacementToCsv()"
+            class="header-button header-button-secondary"
+            [disabled]="isProcessing()"
+          >
+            CSV出力
+          </button>
+          <div class="header-user" style="padding-left: 12px; border-left: 1px solid #e2e8f0;">
+            <span class="user-email">{{ currentUser()?.displayName || currentUser()?.email || 'ユーザー' }}</span>
+            <button (click)="logout()" class="header-button header-button-logout">ログアウト</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-bottom">
+        <div class="header-bottom-left">
+          <!-- ファイルを選択 -->
           <label class="file-label">
             <input
               #mainFileInput
@@ -56,33 +74,53 @@
             />
             📁 ファイルを選択
           </label>
+          <!-- ファイル名表示 -->
           <span *ngIf="mainFileName()" class="file-name">{{ mainFileName() }}</span>
+          <!-- 2番目のファイルを選択 -->
+          <label class="file-label" *ngIf="employees().length > 0 && !additionalFileLoaded">
+            <input
+              #additionalFileInput
+              type="file"
+              accept=".csv"
+              (change)="onAdditionalFileSelected($event)"
+              style="display: none;"
+            />
+            📁 ファイルを選択
+          </label>
+          <!-- 追加ファイル名表示 -->
+          <span *ngIf="additionalFileName()" class="file-name">{{ additionalFileName() }}</span>
+          <!-- ファイル取り消し -->
           <button
             *ngIf="employees().length > 0"
             (click)="clearMainFile()"
             class="header-button header-button-secondary"
           >
-            リセット
+            ファイル取り消し
           </button>
         </div>
-        <!-- その他のボタン -->
-        <div class="header-control-group">
-          <button (click)="runAllOptimizationsComparison()" class="header-button header-button-secondary" [disabled]="isProcessing()">
-            比較
-          </button>
+
+        <div class="header-bottom-right">
+          <!-- 目的選択 -->
+          <select
+            id="objective-select"
+            [(ngModel)]="selectedObjective"
+            class="header-select"
+            [disabled]="isProcessing() || employees().length === 0"
+          >
+            <option value="totalSales">全社売上最大化</option>
+            <option value="deptAProfit">A事業部利益最大化</option>
+            <option value="deptBSales">B事業部売上最大化</option>
+            <option value="deptCSales">C事業部売上最大化</option>
+          </select>
+          <!-- 最適配置を自動算出 -->
           <button
             *ngIf="employees().length > 0"
-            (click)="exportPlacementToCsv()"
-            class="header-button header-button-secondary"
+            (click)="runOptimization()"
+            class="header-button header-button-primary"
             [disabled]="isProcessing()"
           >
-            CSV出力
+            {{ isProcessing() ? '処理中...' : '最適配置を自動算出' }}
           </button>
-        </div>
-        <!-- ユーザー情報 -->
-        <div class="header-user">
-          <span class="user-email">{{ currentUser()?.displayName || currentUser()?.email || 'ユーザー' }}</span>
-          <button (click)="logout()" class="header-button header-button-logout">ログアウト</button>
         </div>
       </div>
     </header>
@@ -325,9 +363,9 @@
     </div>
 
     <!-- 下部：比較テーブル -->
-    <div class="comparison-sections" *ngIf="objectiveComparisonResults().length > 0">
+    <div class="comparison-sections" *ngIf="activeTab() === 'objective' && objectiveComparisonResults().length > 0">
       <div class="comparison-section">
-        <h2 class="section-title">課題別結果比較</h2>
+        <h2 class="section-title">目的別結果比較</h2>
         <div class="comparison-table-wrapper">
           <table class="comparison-table">
             <thead>
@@ -354,6 +392,50 @@
                 <td>{{ result.deptBSales | number:'1.2-2' }}</td>
                 <td>{{ result.deptCHeadcount }}</td>
                 <td>{{ result.deptCSales | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下部：採用前後比較テーブル -->
+    <div class="comparison-sections" *ngIf="activeTab() === 'matrix' && matrixComparisonResults().length > 0">
+      <div class="comparison-section">
+        <h2 class="section-title">採用前後結果比較</h2>
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th style="text-align: left;">課題</th>
+                <th colspan="2">採用前</th>
+                <th colspan="2">採用後</th>
+                <th>売上差分</th>
+                <th>利益差分</th>
+              </tr>
+              <tr>
+                <th style="text-align: left;"></th>
+                <th>人数配置</th>
+                <th>全社売上(億円)</th>
+                <th>人数配置</th>
+                <th>全社売上(億円)</th>
+                <th>(億円)</th>
+                <th>(億円)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let result of matrixComparisonResults()">
+                <td class="objective-name">{{ result.objectiveName }}</td>
+                <td>{{ result.beforePlacement }}</td>
+                <td>{{ result.beforeTotalSales | number:'1.2-2' }}</td>
+                <td>{{ result.afterPlacement }}</td>
+                <td>{{ result.afterTotalSales | number:'1.2-2' }}</td>
+                <td [ngStyle]="{ 'color': result.salesDiff > 0 ? '#28a745' : '#dc3545' }">
+                  {{ result.salesDiff | number:'1.2-2' }}
+                </td>
+                <td [ngStyle]="{ 'color': result.profitDiff > 0 ? '#28a745' : '#dc3545' }">
+                  {{ result.profitDiff | number:'1.2-2' }}
+                </td>
               </tr>
             </tbody>
           </table>

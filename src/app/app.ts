@@ -43,15 +43,19 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
     /* ヘッダー */
     .app-header {
       display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .header-top {
+      display: flex;
       align-items: center;
       justify-content: space-between;
       height: 64px;
       padding: 0 24px;
-      background-color: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
       gap: 20px;
-      flex-shrink: 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
     .header-left {
       display: flex;
@@ -65,12 +69,41 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       color: #1a1a1a;
       white-space: nowrap;
     }
+    .header-tabs {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      gap: 0;
+    }
+    .header-tab {
+      padding: 12px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .header-tab.active {
+      color: #2196f3;
+      border-bottom-color: #2196f3;
+    }
+    .header-tab:hover {
+      color: #1a1a1a;
+    }
     .header-controls {
       display: flex;
       align-items: center;
       gap: 12px;
-      flex: 1;
-      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
     }
     .header-control-group {
       display: flex;
@@ -162,6 +195,26 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
     .header-button-logout:hover {
       background-color: #c82333;
     }
+    /* ヘッダー下部 */
+    .header-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 24px;
+      background-color: #fafbfc;
+      border-top: 1px solid #e2e8f0;
+    }
+    .header-bottom-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-bottom-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
     /* メイン画面ラッパー */
     .main-wrapper {
       display: flex;
@@ -170,9 +223,9 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       gap: 16px;
       padding: 16px;
     }
-    /* 左側：事業部エリア（75%） */
+    /* 左側：事業部エリア */
     .left-section {
-      flex: 0 0 75%;
+      flex: 1;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -313,9 +366,9 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       font-size: 9px;
       cursor: pointer;
     }
-    /* 右側：一時置き場（25%） */
+    /* 右側：一時置き場 */
     .right-section {
-      flex: 0 0 25%;
+      flex: 0 0 300px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -429,31 +482,19 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       color: #1a1a1a;
       background-color: #e7f3ff;
     }
-    /* スクロールバー */
+    /* スクロールバーを非表示 */
     .left-section::-webkit-scrollbar,
     .temp-list::-webkit-scrollbar,
     .employees-grid::-webkit-scrollbar,
     .comparison-sections::-webkit-scrollbar {
-      width: 6px;
+      display: none;
     }
-    .left-section::-webkit-scrollbar-track,
-    .temp-list::-webkit-scrollbar-track,
-    .employees-grid::-webkit-scrollbar-track,
-    .comparison-sections::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .left-section::-webkit-scrollbar-thumb,
-    .temp-list::-webkit-scrollbar-thumb,
-    .employees-grid::-webkit-scrollbar-thumb,
-    .comparison-sections::-webkit-scrollbar-thumb {
-      background: #cbd5e0;
-      border-radius: 3px;
-    }
-    .left-section::-webkit-scrollbar-thumb:hover,
-    .temp-list::-webkit-scrollbar-thumb:hover,
-    .employees-grid::-webkit-scrollbar-thumb:hover,
-    .comparison-sections::-webkit-scrollbar-thumb:hover {
-      background: #a0aec0;
+    .left-section,
+    .temp-list,
+    .employees-grid,
+    .comparison-sections {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
     /* ステータス */
     .text-success {
@@ -565,6 +606,7 @@ export class App implements OnInit, OnDestroy {
   protected minTotalSales = MIN_TOTAL_SALES;
   protected selectedObjective: OptimizationObjective = 'totalSales';
   protected optimizationReason: string = '';
+  protected activeTab = signal<'objective' | 'matrix'>('objective');
 
   constructor(
     private calculatorService: CalculatorService,
