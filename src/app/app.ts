@@ -693,20 +693,6 @@ export class App implements OnInit, OnDestroy {
 
     const fileName = file.name;
 
-    // すでに同じファイルが選択されているかチェック
-    if (this.mainFileName() === fileName) {
-      alert(`「${fileName}」は既に選択されています。別のファイルを選択するか、「取り消す」ボタンで削除してください。`);
-      event.target.value = '';
-      return;
-    }
-
-    // 追加ファイルと同じかチェック
-    if (this.additionalFileName() === fileName) {
-      alert(`「${fileName}」は追加候補者ファイルとして既に選択されています。別のファイルを選択してください。`);
-      event.target.value = '';
-      return;
-    }
-
     const reader = new FileReader();
     reader.onload = (e) => {
       const csvText = e.target?.result as string;
@@ -718,33 +704,37 @@ export class App implements OnInit, OnDestroy {
         return;
       }
 
-      const employees = parseResult.employees;
+      const newEmployees = parseResult.employees;
 
-      for (let i = 0; i < employees.length; i++) {
-        employees[i].assignedDept = 'Temp';
+      // 新しい社員を全員Tempに設定
+      for (let i = 0; i < newEmployees.length; i++) {
+        newEmployees[i].assignedDept = 'Temp';
       }
 
-      this.mainFileName.set(fileName);
-      this.mainEmployees.set(employees);
-      this.employees.set(employees);
-      this.additionalFileLoaded.set(false);
-      this.additionalFileName.set('');
-      this.optimizationExecuted.set(false);
+      // 既存の社員と新しい社員を統合
+      const currentEmployees = this.employees();
+      const combinedEmployees = [...currentEmployees, ...newEmployees];
+
+      // 更新：ファイル名を追記（複数選択対応）
+      if (this.mainFileName() === '') {
+        this.mainFileName.set(fileName);
+      } else {
+        this.mainFileName.set(this.mainFileName() + ', ' + fileName);
+      }
+
+      this.employees.set(combinedEmployees);
       this.updateSimulation();
-      console.log('計算結果:', this.simulationResult());
+      console.log('社員数:', combinedEmployees.length, '計算結果:', this.simulationResult());
     };
     reader.readAsText(file);
   }
 
   clearMainFile(): void {
     this.mainFileInput.nativeElement.value = '';
-    this.mainEmployees.set([]);
     this.employees.set([]);
     this.simulationResult.set(this.createEmptyResult());
     this.objectiveComparisonResults.set([]);
     this.matrixComparisonResults.set([]);
-    this.additionalFileLoaded.set(false);
-    this.additionalFileName.set('');
     this.mainFileName.set('');
     this.optimizationExecuted.set(false);
     if (this.additionalFileInput) {
@@ -767,20 +757,6 @@ export class App implements OnInit, OnDestroy {
 
     const fileName = file.name;
 
-    // すでに同じファイルが選択されているかチェック
-    if (this.additionalFileName() === fileName) {
-      alert(`「${fileName}」は既に選択されています。別のファイルを選択するか、「取り消す」ボタンで削除してください。`);
-      event.target.value = '';
-      return;
-    }
-
-    // メインファイルと同じかチェック
-    if (this.mainFileName() === fileName) {
-      alert(`「${fileName}」はメインファイルとして既に選択されています。別のファイルを選択してください。`);
-      event.target.value = '';
-      return;
-    }
-
     const reader = new FileReader();
     reader.onload = (e) => {
       const csvText = e.target?.result as string;
@@ -798,13 +774,18 @@ export class App implements OnInit, OnDestroy {
         emp.assignedDept = 'Temp';
       });
 
-      // 現在の最適化済み配置を mainEmployees に反映
-      this.mainEmployees.set(this.employees());
-
-      const updatedEmployees = [...this.mainEmployees(), ...additionalEmployees];
+      // 現在の状態を保持して、追加ファイルの社員を統合
+      const currentEmployees = this.employees();
+      const updatedEmployees = [...currentEmployees, ...additionalEmployees];
       this.employees.set(updatedEmployees);
       this.additionalFileLoaded.set(true);
-      this.additionalFileName.set(fileName);
+
+      // 追加ファイル名を更新
+      if (this.additionalFileName() === '') {
+        this.additionalFileName.set(fileName);
+      } else {
+        this.additionalFileName.set(this.additionalFileName() + ', ' + fileName);
+      }
 
       this.updateSimulation();
       console.log('追加候補者読み込み完了:', this.simulationResult());
