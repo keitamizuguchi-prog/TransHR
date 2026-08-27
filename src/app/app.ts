@@ -1365,10 +1365,10 @@ export class App implements OnInit, OnDestroy {
           label: '利益差分(億円)',
           data: profitDiffData,
           backgroundColor: (context: any) => {
-            return context.parsed.x >= 0 ? '#28a745' : '#ffc107';
+            return context.parsed.x >= 0 ? '#28a745' : '#dc3545';
           },
           borderColor: (context: any) => {
-            return context.parsed.x >= 0 ? '#1e7e34' : '#ff9800';
+            return context.parsed.x >= 0 ? '#1e7e34' : '#c82333';
           },
           borderWidth: 1,
         },
