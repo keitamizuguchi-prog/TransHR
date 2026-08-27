@@ -109,7 +109,12 @@ export class CalculatorService {
   }
 
   calculateTotalSimulation(employees: Employee[]): SimulationResult {
+    const startMark = `sim-start-${performance.now()}`;
+    performance.mark(startMark);
+
     // Temp 以外の社員のみを対象
+    const filterMark = `filter-start-${performance.now()}`;
+    performance.mark(filterMark);
     const assignedEmployees = employees.filter(
       (emp) => emp.assignedDept !== 'Temp'
     );
@@ -124,15 +129,39 @@ export class CalculatorService {
     const deptCEmployees = assignedEmployees.filter(
       (emp) => emp.assignedDept === 'C'
     );
+    const filterEndMark = `filter-end-${performance.now()}`;
+    performance.mark(filterEndMark);
+    performance.measure('filtering', filterMark, filterEndMark);
 
     // 各事業部のメトリクスを計算
+    const deptAMark = `deptA-start-${performance.now()}`;
+    performance.mark(deptAMark);
     const deptA = this.calculateDeptMetrics(deptAEmployees, 'A');
+    const deptAEndMark = `deptA-end-${performance.now()}`;
+    performance.mark(deptAEndMark);
+    performance.measure('calculateDeptMetrics-A', deptAMark, deptAEndMark);
+
+    const deptBMark = `deptB-start-${performance.now()}`;
+    performance.mark(deptBMark);
     const deptB = this.calculateDeptMetrics(deptBEmployees, 'B');
+    const deptBEndMark = `deptB-end-${performance.now()}`;
+    performance.mark(deptBEndMark);
+    performance.measure('calculateDeptMetrics-B', deptBMark, deptBEndMark);
+
+    const deptCMark = `deptC-start-${performance.now()}`;
+    performance.mark(deptCMark);
     const deptC = this.calculateDeptMetrics(deptCEmployees, 'C');
+    const deptCEndMark = `deptC-end-${performance.now()}`;
+    performance.mark(deptCEndMark);
+    performance.measure('calculateDeptMetrics-C', deptCMark, deptCEndMark);
 
     // 全社売上
     const totalSales = deptA.finalSales + deptB.finalSales + deptC.finalSales;
     const totalProfit = deptA.profit + deptB.profit + deptC.profit;
+
+    const endMark = `sim-end-${performance.now()}`;
+    performance.mark(endMark);
+    performance.measure('calculateTotalSimulation', startMark, endMark);
 
     return {
       deptA,
@@ -444,6 +473,57 @@ export class CalculatorService {
       'シミュレーションの合計時間(ms)': simulationTime.toFixed(2),
       '候補列挙の時間割合(%)': enumerationPercentage.toFixed(2),
       'シミュレーションの時間割合(%)': simulationPercentage.toFixed(2),
+    });
+
+    // シミュレーション関数内の詳細計測結果を集約
+    const filterMeasures = performance.getEntriesByName('filtering', 'measure') as PerformanceMeasure[];
+    const deptAMeasures = performance.getEntriesByName('calculateDeptMetrics-A', 'measure') as PerformanceMeasure[];
+    const deptBMeasures = performance.getEntriesByName('calculateDeptMetrics-B', 'measure') as PerformanceMeasure[];
+    const deptCMeasures = performance.getEntriesByName('calculateDeptMetrics-C', 'measure') as PerformanceMeasure[];
+    const simMeasures = performance.getEntriesByName('calculateTotalSimulation', 'measure') as PerformanceMeasure[];
+
+    const calculateAverages = (measures: PerformanceMeasure[]) => {
+      if (measures.length === 0) return { avg: 0, total: 0, count: 0 };
+      const total = measures.reduce((sum, m) => sum + m.duration, 0);
+      return {
+        total: total.toFixed(2),
+        avg: (total / measures.length).toFixed(4),
+        count: measures.length,
+      };
+    };
+
+    const filterStats = calculateAverages(filterMeasures);
+    const deptAStats = calculateAverages(deptAMeasures);
+    const deptBStats = calculateAverages(deptBMeasures);
+    const deptCStats = calculateAverages(deptCMeasures);
+    const simStats = calculateAverages(simMeasures);
+
+    console.log('[シミュレーション関数の詳細計測]', {
+      'calculateTotalSimulation': {
+        '平均実行時間(ms)': simStats.avg,
+        '合計時間(ms)': simStats.total,
+        '実行回数': simStats.count,
+      },
+      'filtering（フィルタリング）': {
+        '平均実行時間(ms)': filterStats.avg,
+        '合計時間(ms)': filterStats.total,
+        '実行回数': filterStats.count,
+      },
+      'calculateDeptMetrics-A': {
+        '平均実行時間(ms)': deptAStats.avg,
+        '合計時間(ms)': deptAStats.total,
+        '実行回数': deptAStats.count,
+      },
+      'calculateDeptMetrics-B': {
+        '平均実行時間(ms)': deptBStats.avg,
+        '合計時間(ms)': deptBStats.total,
+        '実行回数': deptBStats.count,
+      },
+      'calculateDeptMetrics-C': {
+        '平均実行時間(ms)': deptCStats.avg,
+        '合計時間(ms)': deptCStats.total,
+        '実行回数': deptCStats.count,
+      },
     });
 
     const finalResult = this.calculateTotalSimulation(currentEmployees);
