@@ -56,9 +56,10 @@ export class CalculatorService {
       return sum + contribution;
     }, 0);
 
-    // 基本売上
-    const baseSales =
-      config.baseSales * (1 + (deptAbility / 100) * config.growthRate);
+    // 基本売上（配置人数が0の場合は0）
+    const baseSales = headcount > 0
+      ? config.baseSales * (1 + (deptAbility / 100) * config.growthRate)
+      : 0;
 
     // 充足率と補正係数
     const fulfillmentRate = headcount / config.optimalCount;
