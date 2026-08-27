@@ -39,6 +39,22 @@ export class CalculatorService {
     return 0.8;
   }
 
+  // 公開メソッド：充足率から補正係数を取得（UI表示用）
+  getUnderfulfillmentCoefficientPublic(deptId: 'A' | 'B' | 'C', fulfillmentRate: number): number {
+    return this.getUnderfulfillmentCoefficient(deptId, fulfillmentRate);
+  }
+
+  getOverfulfillmentCoefficientPublic(fulfillmentRate: number): number {
+    return this.getOverfulfillmentCoefficient(fulfillmentRate);
+  }
+
+  // 充足率から総合補正係数を取得（両方を適用）
+  getTotalCorrectionCoefficient(deptId: 'A' | 'B' | 'C', fulfillmentRate: number): number {
+    const underCoeff = this.getUnderfulfillmentCoefficient(deptId, fulfillmentRate);
+    const overCoeff = this.getOverfulfillmentCoefficient(fulfillmentRate);
+    return underCoeff * overCoeff;
+  }
+
   calculateDeptMetrics(
     employees: Employee[],
     deptId: 'A' | 'B' | 'C'

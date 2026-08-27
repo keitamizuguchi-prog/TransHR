@@ -200,6 +200,26 @@
                   <span class="stat-label">充足率</span>
                   <span class="stat-value">‐</span>
                 </div>
+
+                <!-- 補正係数カード（A事業部） -->
+                <div class="stat-item"
+                  *ngIf="optimizationExecuted()"
+                  [ngStyle]="{
+                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!)).bg,
+                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!)).text,
+                    'padding': '8px',
+                    'border-radius': '4px',
+                    'margin': '-4px'
+                  }">
+                  <span class="stat-label">補正係数</span>
+                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!) | number:'1.2-2') }}</span>
+                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!), result.deptA.fulfillmentRate) }}</span>
+                </div>
+                <div class="stat-item" *ngIf="!optimizationExecuted()">
+                  <span class="stat-label">補正係数</span>
+                  <span class="stat-value">‐</span>
+                </div>
+
                 <div class="stat-item">
                   <span class="stat-label">最低配置人数</span>
                   <span class="stat-value">{{ deptConfig['A'].minCount }}名</span>
@@ -318,6 +338,26 @@
                   <span class="stat-label">充足率</span>
                   <span class="stat-value">‐</span>
                 </div>
+
+                <!-- 補正係数カード（B事業部） -->
+                <div class="stat-item"
+                  *ngIf="optimizationExecuted()"
+                  [ngStyle]="{
+                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!)).bg,
+                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!)).text,
+                    'padding': '8px',
+                    'border-radius': '4px',
+                    'margin': '-4px'
+                  }">
+                  <span class="stat-label">補正係数</span>
+                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!) | number:'1.2-2') }}</span>
+                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!), result.deptB.fulfillmentRate) }}</span>
+                </div>
+                <div class="stat-item" *ngIf="!optimizationExecuted()">
+                  <span class="stat-label">補正係数</span>
+                  <span class="stat-value">‐</span>
+                </div>
+
                 <div class="stat-item">
                   <span class="stat-label">最低配置人数</span>
                   <span class="stat-value">{{ deptConfig['B'].minCount }}名</span>
@@ -436,6 +476,26 @@
                   <span class="stat-label">充足率</span>
                   <span class="stat-value">‐</span>
                 </div>
+
+                <!-- 補正係数カード（C事業部） -->
+                <div class="stat-item"
+                  *ngIf="optimizationExecuted()"
+                  [ngStyle]="{
+                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!)).bg,
+                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!)).text,
+                    'padding': '8px',
+                    'border-radius': '4px',
+                    'margin': '-4px'
+                  }">
+                  <span class="stat-label">補正係数</span>
+                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!) | number:'1.2-2') }}</span>
+                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!), result.deptC.fulfillmentRate) }}</span>
+                </div>
+                <div class="stat-item" *ngIf="!optimizationExecuted()">
+                  <span class="stat-label">補正係数</span>
+                  <span class="stat-value">‐</span>
+                </div>
+
                 <div class="stat-item">
                   <span class="stat-label">最低配置人数</span>
                   <span class="stat-value">{{ deptConfig['C'].minCount }}名</span>

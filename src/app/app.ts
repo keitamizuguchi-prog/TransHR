@@ -822,7 +822,7 @@ export class App implements OnInit, OnDestroy {
   };
 
   constructor(
-    private calculatorService: CalculatorService,
+    protected calculatorService: CalculatorService,
     protected authService: AuthService
   ) {}
 
@@ -1381,22 +1381,55 @@ export class App implements OnInit, OnDestroy {
   getFulfillmentRateColor(fulfillmentRate: number | undefined): { bg: string; text: string } {
     if (!fulfillmentRate) return { bg: '#f0f0f0', text: '#333' };
 
-    if (fulfillmentRate >= 100 && fulfillmentRate <= FULFILLMENT_RATE_THRESHOLDS.OPTIMAL_MAX) {
+    if (fulfillmentRate >= 100 && fulfillmentRate <= 120) {
       // 100%～120%：緑（適正）
       return { bg: '#d4edda', text: '#155724' };
-    } else if (fulfillmentRate >= FULFILLMENT_RATE_THRESHOLDS.CAUTION_MIN && fulfillmentRate < 100) {
-      // 90%～100%：黄色（注意）
+    } else if (fulfillmentRate >= 90 && fulfillmentRate < 100) {
+      // 90%～100%：薄い緑
+      return { bg: '#e8f5e9', text: '#2e7d32' };
+    } else if (fulfillmentRate >= 80 && fulfillmentRate < 90) {
+      // 80%～90%：薄い緑
+      return { bg: '#e8f5e9', text: '#2e7d32' };
+    } else if (fulfillmentRate >= 70 && fulfillmentRate < 80) {
+      // 70%～80%：黄色・オレンジ
       return { bg: '#fff3cd', text: '#856404' };
-    } else if (fulfillmentRate >= FULFILLMENT_RATE_THRESHOLDS.WARNING_MIN && fulfillmentRate < FULFILLMENT_RATE_THRESHOLDS.CAUTION_MIN) {
-      // 80%～90%：黄色（注意）
-      return { bg: '#fff3cd', text: '#856404' };
-    } else if (fulfillmentRate >= FULFILLMENT_RATE_THRESHOLDS.CRITICAL_MIN && fulfillmentRate < FULFILLMENT_RATE_THRESHOLDS.WARNING_MIN) {
-      // 70%～80%：橙色（警告）
-      return { bg: '#ffe5cc', text: '#cc6600' };
     } else {
-      // 70%未満：赤（危険）
+      // その他：赤
       return { bg: '#f8d7da', text: '#721c24' };
     }
+  }
+
+  getCorrectionCoefficientColor(coefficient: number | undefined): { bg: string; text: string } {
+    if (coefficient === undefined || coefficient === null) return { bg: '#f0f0f0', text: '#333' };
+
+    if (coefficient >= 1.0) {
+      // 1.00：緑（最適）
+      return { bg: '#d4edda', text: '#155724' };
+    } else if (coefficient >= 0.9) {
+      // 0.90～0.99：薄い緑
+      return { bg: '#e8f5e9', text: '#2e7d32' };
+    } else if (coefficient >= 0.7) {
+      // 0.70～0.89：黄色・オレンジ
+      return { bg: '#fff3cd', text: '#856404' };
+    } else {
+      // 0.70未満：赤
+      return { bg: '#f8d7da', text: '#721c24' };
+    }
+  }
+
+  getCoefficientColorForRange(coefficient: number | undefined): string {
+    if (coefficient === undefined || coefficient === null) return '#f0f0f0';
+    if (coefficient >= 1.0) return '#d4edda';
+    if (coefficient >= 0.9) return '#e8f5e9';
+    if (coefficient >= 0.7) return '#fff3cd';
+    return '#f8d7da';
+  }
+
+  getPenaltyText(totalCoeff: number, fulfillmentRate: number | undefined): string {
+    if (!fulfillmentRate) return '-';
+    if (totalCoeff >= 1.0) return 'ペナルティなし';
+    const penaltyPercent = Math.round((1 - totalCoeff) * 100);
+    return `${penaltyPercent}%のペナルティ`;
   }
 
   getEmployeeContribution(employee: Employee): number {
