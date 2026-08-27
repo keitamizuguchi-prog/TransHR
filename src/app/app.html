@@ -677,17 +677,24 @@
           ></canvas>
         </div>
 
-        <!-- グラフB: 部門別売上内訳 -->
+        <!-- グラフB: 課題ごとの部門別売上内訳 -->
         <div style="margin-bottom: 32px;">
-          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">部門別売上内訳（全体比）</h3>
-          <canvas
-            baseChart
-            [type]="'doughnut'"
-            [data]="objectiveChartData2()"
-            [options]="objectiveChartOptions2"
-            [aria-label]="'全目的における部門別売上の割合を円グラフで表示。各部門の売上構成比とパーセンテージを示します。'"
-            style="max-height: 350px; min-height: 250px;"
-          ></canvas>
+          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">課題別：部門別売上内訳</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+            <div *ngFor="let chartData of objectiveChartData2List(); let index = index">
+              <div style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 500;">
+                {{ (objectiveChartDataSource() === 'main' ? objectiveComparisonResults() : objectiveComparisonResultsWithAdditional())[index]?.objectiveName || `課題${index + 1}` }}
+              </div>
+              <canvas
+                baseChart
+                [type]="'doughnut'"
+                [data]="chartData"
+                [options]="objectiveChartOptions2"
+                [aria-label]="'部門別売上の割合を円グラフで表示'"
+                style="max-height: 250px; min-height: 200px;"
+              ></canvas>
+            </div>
+          </div>
         </div>
 
         <h2 class="section-title">目的別結果比較{{ additionalFileLoaded() && objectiveChartDataSource() === 'main' ? '（従業員ファイルのみ）' : additionalFileLoaded() && objectiveChartDataSource() === 'additional' ? '（採用予定を含む）' : '' }}</h2>

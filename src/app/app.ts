@@ -804,14 +804,7 @@ export class App implements OnInit, OnDestroy {
     },
   };
 
-  protected objectiveChartData2 = signal<any>({
-    labels: [],
-    datasets: [
-      { label: 'A部売上(億円)', data: [], backgroundColor: '#FF6B6B', borderColor: '#E63946', borderWidth: 1 },
-      { label: 'B部売上(億円)', data: [], backgroundColor: '#4ECDC4', borderColor: '#2C9B9E', borderWidth: 1 },
-      { label: 'C部売上(億円)', data: [], backgroundColor: '#FFE66D', borderColor: '#FFD93D', borderWidth: 1 },
-    ],
-  });
+  protected objectiveChartData2List = signal<any[]>([]);
 
   protected objectiveChartOptions2: ChartOptions<'doughnut'> = {
     responsive: true,
@@ -1371,22 +1364,20 @@ export class App implements OnInit, OnDestroy {
       ],
     });
 
-    // グラフB: 各部門売上内訳（円グラフ）
-    const totalDeptASales = deptASalesData.reduce((a, b) => a + b, 0);
-    const totalDeptBSales = deptBSalesData.reduce((a, b) => a + b, 0);
-    const totalDeptCSales = deptCSalesData.reduce((a, b) => a + b, 0);
-
-    this.objectiveChartData2.set({
+    // グラフB: 課題ごとの部門別売上内訳（円グラフ）
+    const chartData2List = results.map((result) => ({
       labels: ['A部', 'B部', 'C部'],
       datasets: [
         {
-          data: [totalDeptASales, totalDeptBSales, totalDeptCSales],
+          data: [result.deptASales, result.deptBSales, result.deptCSales],
           backgroundColor: ['#FF6B6B', '#4ECDC4', '#FFE66D'],
           borderColor: ['#E63946', '#2C9B9E', '#FFD93D'],
           borderWidth: 2,
         },
       ],
-    });
+    }));
+
+    this.objectiveChartData2List.set(chartData2List);
   }
 
   getFulfillmentRateColor(fulfillmentRate: number | undefined): { bg: string; text: string } {
