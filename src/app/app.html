@@ -205,15 +205,15 @@
                 <div class="stat-item"
                   *ngIf="optimizationExecuted()"
                   [ngStyle]="{
-                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!)).bg,
-                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!)).text,
+                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate! / 100)).bg,
+                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate! / 100)).text,
                     'padding': '8px',
                     'border-radius': '4px',
                     'margin': '-4px'
                   }">
                   <span class="stat-label">補正係数</span>
-                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!) | number:'1.2-2') }}</span>
-                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate!), result.deptA.fulfillmentRate) }}</span>
+                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate! / 100) | number:'1.2-2') }}</span>
+                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('A', result.deptA.fulfillmentRate! / 100), result.deptA.fulfillmentRate) }}</span>
                 </div>
                 <div class="stat-item" *ngIf="!optimizationExecuted()">
                   <span class="stat-label">補正係数</span>
@@ -343,15 +343,15 @@
                 <div class="stat-item"
                   *ngIf="optimizationExecuted()"
                   [ngStyle]="{
-                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!)).bg,
-                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!)).text,
+                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate! / 100)).bg,
+                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate! / 100)).text,
                     'padding': '8px',
                     'border-radius': '4px',
                     'margin': '-4px'
                   }">
                   <span class="stat-label">補正係数</span>
-                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!) | number:'1.2-2') }}</span>
-                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate!), result.deptB.fulfillmentRate) }}</span>
+                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate! / 100) | number:'1.2-2') }}</span>
+                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('B', result.deptB.fulfillmentRate! / 100), result.deptB.fulfillmentRate) }}</span>
                 </div>
                 <div class="stat-item" *ngIf="!optimizationExecuted()">
                   <span class="stat-label">補正係数</span>
@@ -481,15 +481,15 @@
                 <div class="stat-item"
                   *ngIf="optimizationExecuted()"
                   [ngStyle]="{
-                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!)).bg,
-                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!)).text,
+                    'background-color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate! / 100)).bg,
+                    'color': getCorrectionCoefficientColor(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate! / 100)).text,
                     'padding': '8px',
                     'border-radius': '4px',
                     'margin': '-4px'
                   }">
                   <span class="stat-label">補正係数</span>
-                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!) | number:'1.2-2') }}</span>
-                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate!), result.deptC.fulfillmentRate) }}</span>
+                  <span class="stat-value">{{ (calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate! / 100) | number:'1.2-2') }}</span>
+                  <span style="font-size: 10px; margin-top: 2px;">{{ getPenaltyText(calculatorService.getTotalCorrectionCoefficient('C', result.deptC.fulfillmentRate! / 100), result.deptC.fulfillmentRate) }}</span>
                 </div>
                 <div class="stat-item" *ngIf="!optimizationExecuted()">
                   <span class="stat-label">補正係数</span>
