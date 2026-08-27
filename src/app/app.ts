@@ -7,10 +7,15 @@ import { DepartmentId, Employee, SimulationResult, OptimizationObjective, Object
 import { CalculatorService } from './services/calculator.service';
 import { AuthService } from './services/auth.service';
 import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
+import { BaseChartDirective } from 'ng2-charts';
+import { Chart as ChartJS, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import type { ChartOptions } from 'chart.js';
+
+ChartJS.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BaseChartDirective],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
   styles: [`
@@ -702,6 +707,58 @@ export class App implements OnInit, OnDestroy {
   protected currentScreen = signal<'dashboard' | 'objective' | 'matrix'>('dashboard');
   protected tempPanelOpen = signal<boolean>(true);
 
+  // グラフ用データ
+  protected matrixChartLabels = signal<string[]>([]);
+  protected matrixChartData = signal<any>({
+    labels: [],
+    datasets: [
+      {
+        label: '売上差分(億円)',
+        data: [],
+        backgroundColor: '#2196f3',
+        borderColor: '#1976d2',
+        borderWidth: 1,
+      },
+      {
+        label: '利益差分(億円)',
+        data: [],
+        backgroundColor: '#28a745',
+        borderColor: '#1e7e34',
+        borderWidth: 1,
+      },
+    ],
+  });
+  protected matrixChartOptions: ChartOptions<'bar'> = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed.x || 0;
+            return `${context.dataset.label}: ${value.toFixed(2)}億円`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        stacked: false,
+        title: {
+          display: true,
+          text: '差分(億円)',
+        },
+      },
+      y: {
+        stacked: false,
+      },
+    },
+  };
+
   constructor(
     private calculatorService: CalculatorService,
     protected authService: AuthService
@@ -1273,9 +1330,50 @@ export class App implements OnInit, OnDestroy {
       }
 
       this.matrixComparisonResults.set(results);
+      this.updateMatrixChartData();
       console.log('マトリクス比較結果:', results);
       this.isProcessing.set(false);
     }, 100);
+  }
+
+  private updateMatrixChartData(): void {
+    const results = this.matrixComparisonResults();
+    if (results.length === 0) {
+      return;
+    }
+
+    const labels = results.map(r => r.objectiveName);
+    const salesDiffData = results.map(r => r.salesDiff);
+    const profitDiffData = results.map(r => r.profitDiff);
+
+    this.matrixChartLabels.set(labels);
+    this.matrixChartData.set({
+      labels: labels,
+      datasets: [
+        {
+          label: '売上差分(億円)',
+          data: salesDiffData,
+          backgroundColor: (context: any) => {
+            return context.parsed.x >= 0 ? '#2196f3' : '#dc3545';
+          },
+          borderColor: (context: any) => {
+            return context.parsed.x >= 0 ? '#1976d2' : '#c82333';
+          },
+          borderWidth: 1,
+        },
+        {
+          label: '利益差分(億円)',
+          data: profitDiffData,
+          backgroundColor: (context: any) => {
+            return context.parsed.x >= 0 ? '#28a745' : '#ffc107';
+          },
+          borderColor: (context: any) => {
+            return context.parsed.x >= 0 ? '#1e7e34' : '#ff9800';
+          },
+          borderWidth: 1,
+        },
+      ],
+    });
   }
 
   exportPlacementToCsv(): void {

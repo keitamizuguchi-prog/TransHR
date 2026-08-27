@@ -567,6 +567,19 @@
         <p>計算中...</p>
       </div>
       <div class="comparison-section" *ngIf="matrixComparisonResults().length > 0">
+        <!-- 差分グラフ -->
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">売上・利益差分の可視化</h3>
+          <canvas
+            baseChart
+            [type]="'bar'"
+            [data]="matrixChartData()"
+            [options]="matrixChartOptions"
+            [aria-label]="'採用前後の売上差分と利益差分を示す横棒グラフ。各課題における採用による収益への影響を比較します。'"
+            style="max-height: 350px; min-height: 250px;"
+          ></canvas>
+        </div>
+
         <h2 class="section-title">採用前後結果比較</h2>
         <div class="comparison-table-wrapper">
           <table class="comparison-table">
