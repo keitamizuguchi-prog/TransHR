@@ -450,7 +450,7 @@
         <p>計算中...</p>
       </div>
       <div class="comparison-section" *ngIf="objectiveComparisonResults().length > 0">
-        <h2 class="section-title">目的別結果比較</h2>
+        <h2 class="section-title">目的別結果比較{{ additionalFileLoaded() ? '（従業員ファイルのみ）' : '' }}</h2>
         <div class="comparison-table-wrapper">
           <table class="comparison-table">
             <thead>
@@ -468,6 +468,39 @@
             </thead>
             <tbody>
               <tr *ngFor="let result of objectiveComparisonResults()">
+                <td class="objective-name">{{ result.objectiveName }}</td>
+                <td>{{ result.totalSales | number:'1.2-2' }}</td>
+                <td>{{ result.totalProfit | number:'1.2-2' }}</td>
+                <td>{{ result.deptAHeadcount }}</td>
+                <td>{{ result.deptASales | number:'1.2-2' }}</td>
+                <td>{{ result.deptBHeadcount }}</td>
+                <td>{{ result.deptBSales | number:'1.2-2' }}</td>
+                <td>{{ result.deptCHeadcount }}</td>
+                <td>{{ result.deptCSales | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="comparison-section" *ngIf="objectiveComparisonResultsWithAdditional().length > 0">
+        <h2 class="section-title">目的別結果比較（採用予定者を含む）</h2>
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th style="text-align: left;">課題</th>
+                <th>全社売上(億円)</th>
+                <th>全社利益(億円)</th>
+                <th>A部人数</th>
+                <th>A部売上(億円)</th>
+                <th>B部人数</th>
+                <th>B部売上(億円)</th>
+                <th>C部人数</th>
+                <th>C部売上(億円)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let result of objectiveComparisonResultsWithAdditional()">
                 <td class="objective-name">{{ result.objectiveName }}</td>
                 <td>{{ result.totalSales | number:'1.2-2' }}</td>
                 <td>{{ result.totalProfit | number:'1.2-2' }}</td>

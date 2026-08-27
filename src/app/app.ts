@@ -672,6 +672,7 @@ export class App implements OnInit, OnDestroy {
   protected mainEmployees = signal<Employee[]>([]);
   protected simulationResult = signal<SimulationResult>(this.createEmptyResult());
   protected objectiveComparisonResults = signal<ObjectiveComparisonResult[]>([]);
+  protected objectiveComparisonResultsWithAdditional = signal<ObjectiveComparisonResult[]>([]);
   protected matrixComparisonResults = signal<MatrixComparisonResult[]>([]);
   protected additionalFileLoaded = signal<boolean>(false);
   protected optimizationExecuted = signal<boolean>(false);
@@ -896,6 +897,7 @@ export class App implements OnInit, OnDestroy {
     this.additionalFileLoaded.set(false);
     this.additionalFileName.set('');
     this.matrixComparisonResults.set([]);
+    this.objectiveComparisonResultsWithAdditional.set([]);
     this.updateSimulation();
   }
 
@@ -1063,7 +1065,8 @@ export class App implements OnInit, OnDestroy {
     this.isProcessing.set(true);
 
     setTimeout(() => {
-      const originalEmployees = this.employees().map(e => ({ ...e }));
+      const mainEmployeesOnly = this.mainEmployees().map(e => ({ ...e }));
+      const allEmployees = this.employees().map(e => ({ ...e }));
 
       const objectives: OptimizationObjective[] = [
         'totalSales',
@@ -1079,14 +1082,14 @@ export class App implements OnInit, OnDestroy {
         '課題4: C事業部売上最大化',
       ];
 
-      const results: ObjectiveComparisonResult[] = [];
+      const mainResults: ObjectiveComparisonResult[] = [];
 
       for (let i = 0; i < objectives.length; i++) {
         const objective = objectives[i];
         const objectiveLabel = objectiveLabels[i];
 
         const optimizedEmployees = this.calculatorService.optimizePlacement(
-          originalEmployees,
+          mainEmployeesOnly,
           objective
         );
 
@@ -1094,7 +1097,7 @@ export class App implements OnInit, OnDestroy {
           optimizedEmployees
         );
 
-        results.push({
+        mainResults.push({
           objectiveName: objectiveLabel,
           deptAHeadcount: simResult.deptA.headcount,
           deptBHeadcount: simResult.deptB.headcount,
@@ -1110,13 +1113,51 @@ export class App implements OnInit, OnDestroy {
         });
       }
 
-      this.objectiveComparisonResults.set(results);
+      this.objectiveComparisonResults.set(mainResults);
+
+      if (this.additionalFileLoaded()) {
+        const additionalResults: ObjectiveComparisonResult[] = [];
+
+        for (let i = 0; i < objectives.length; i++) {
+          const objective = objectives[i];
+          const objectiveLabel = objectiveLabels[i];
+
+          const optimizedEmployees = this.calculatorService.optimizePlacement(
+            allEmployees,
+            objective
+          );
+
+          const simResult = this.calculatorService.calculateTotalSimulation(
+            optimizedEmployees
+          );
+
+          additionalResults.push({
+            objectiveName: objectiveLabel,
+            deptAHeadcount: simResult.deptA.headcount,
+            deptBHeadcount: simResult.deptB.headcount,
+            deptCHeadcount: simResult.deptC.headcount,
+            totalSales: simResult.totalSales,
+            totalProfit: simResult.totalProfit,
+            deptASales: simResult.deptA.finalSales,
+            deptAProfit: simResult.deptA.profit,
+            deptBSales: simResult.deptB.finalSales,
+            deptBProfit: simResult.deptB.profit,
+            deptCSales: simResult.deptC.finalSales,
+            deptCProfit: simResult.deptC.profit,
+          });
+        }
+
+        this.objectiveComparisonResultsWithAdditional.set(additionalResults);
+        console.log('採用予定者を含む目的間結果比較完了:', additionalResults);
+      } else {
+        this.objectiveComparisonResultsWithAdditional.set([]);
+      }
 
       this.optimizationExecuted.set(true);
-      this.employees.set(originalEmployees);
+      this.employees.set(allEmployees);
       this.updateSimulation();
 
-      console.log('目的間結果比較完了:', results);
+      console.log('目的間結果比較完了（メイン）:', mainResults);
       this.isProcessing.set(false);
     }, 100);
   }
