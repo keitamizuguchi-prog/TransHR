@@ -222,7 +222,8 @@
               </div>
               <!-- 右側：従業員グリッド -->
               <div class="employees-grid">
-                <div *ngFor="let emp of deptAEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
+                <div *ngFor="let emp of deptAEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
+                  <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
                   <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
                   <div class="emp-abilities">
                     <div>営{{ emp.salesPower.toFixed(1) }}</div>
@@ -302,7 +303,8 @@
               </div>
               <!-- 右側：従業員グリッド -->
               <div class="employees-grid">
-                <div *ngFor="let emp of deptBEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
+                <div *ngFor="let emp of deptBEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
+                  <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
                   <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
                   <div class="emp-abilities">
                     <div>営{{ emp.salesPower.toFixed(1) }}</div>
@@ -382,7 +384,8 @@
               </div>
               <!-- 右側：従業員グリッド -->
               <div class="employees-grid">
-                <div *ngFor="let emp of deptCEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked }">
+                <div *ngFor="let emp of deptCEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
+                  <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
                   <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
                   <div class="emp-abilities">
                     <div>営{{ emp.salesPower.toFixed(1) }}</div>
