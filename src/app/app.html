@@ -494,7 +494,56 @@
         <p>計算中...</p>
       </div>
       <div class="comparison-section" *ngIf="objectiveComparisonResults().length > 0">
-        <h2 class="section-title">目的別結果比較{{ additionalFileLoaded() ? '（従業員ファイルのみ）' : '' }}</h2>
+        <!-- データソース切替（採用予定ファイルがある場合のみ表示） -->
+        <div *ngIf="additionalFileLoaded()" style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center;">
+          <span style="font-weight: 600; font-size: 13px;">グラフデータ:</span>
+          <button
+            type="button"
+            (click)="toggleObjectiveDataSource('main')"
+            [style.background-color]="objectiveChartDataSource() === 'main' ? '#2196f3' : '#f0f0f0'"
+            [style.color]="objectiveChartDataSource() === 'main' ? 'white' : '#333'"
+            style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;"
+          >
+            従業員ファイルのみ
+          </button>
+          <button
+            type="button"
+            (click)="toggleObjectiveDataSource('additional')"
+            [style.background-color]="objectiveChartDataSource() === 'additional' ? '#2196f3' : '#f0f0f0'"
+            [style.color]="objectiveChartDataSource() === 'additional' ? 'white' : '#333'"
+            style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;"
+          >
+            採用予定を含む
+          </button>
+        </div>
+
+        <!-- グラフA: 全社売上・利益 -->
+        <div style="margin-bottom: 32px;">
+          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">全社売上・利益の比較</h3>
+          <canvas
+            baseChart
+            [type]="'bar'"
+            [data]="objectiveChartData1()"
+            [options]="objectiveChartOptions1"
+            [aria-label]="'課題1から課題4の全社売上と全社利益を比較するグループ棒グラフ。各課題における売上と利益の関係を示します。'"
+            style="max-height: 300px; min-height: 250px;"
+          ></canvas>
+        </div>
+
+        <!-- グラフB: 部門別売上内訳 -->
+        <div style="margin-bottom: 32px;">
+          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">部門別売上内訳</h3>
+          <canvas
+            baseChart
+            [type]="'bar'"
+            [data]="objectiveChartData2()"
+            [options]="objectiveChartOptions2"
+            [aria-label]="'課題1から課題4のA部B部C部売上を積み上げ横棒グラフで表示。各課題における部門別売上の構成比を示します。'"
+            style="max-height: 350px; min-height: 250px;"
+          ></canvas>
+        </div>
+
+        <h2 class="section-title">目的別結果比較{{ additionalFileLoaded() && objectiveChartDataSource() === 'main' ? '（従業員ファイルのみ）' : additionalFileLoaded() && objectiveChartDataSource() === 'additional' ? '（採用予定を含む）' : '' }}</h2>
         <div class="comparison-table-wrapper">
           <table class="comparison-table">
             <thead>

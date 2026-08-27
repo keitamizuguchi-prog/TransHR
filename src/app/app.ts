@@ -759,6 +759,68 @@ export class App implements OnInit, OnDestroy {
     },
   };
 
+  // 目的別比較用グラフデータ
+  protected objectiveChartDataSource = signal<'main' | 'additional'>('main');
+
+  protected objectiveChartData1 = signal<any>({
+    labels: [],
+    datasets: [
+      { label: '全社売上(億円)', data: [], backgroundColor: '#2196f3', borderColor: '#1976d2', borderWidth: 1 },
+      { label: '全社利益(億円)', data: [], backgroundColor: '#28a745', borderColor: '#1e7e34', borderWidth: 1 },
+    ],
+  });
+
+  protected objectiveChartOptions1: ChartOptions<'bar'> = {
+    indexAxis: 'x',
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed.y || 0;
+            return `${context.dataset.label}: ${value.toFixed(2)}億円`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: { stacked: false, title: { display: true, text: '金額(億円)' } },
+      x: { stacked: false },
+    },
+  };
+
+  protected objectiveChartData2 = signal<any>({
+    labels: [],
+    datasets: [
+      { label: 'A部売上(億円)', data: [], backgroundColor: '#FF6B6B', borderColor: '#E63946', borderWidth: 1 },
+      { label: 'B部売上(億円)', data: [], backgroundColor: '#4ECDC4', borderColor: '#2C9B9E', borderWidth: 1 },
+      { label: 'C部売上(億円)', data: [], backgroundColor: '#FFE66D', borderColor: '#FFD93D', borderWidth: 1 },
+    ],
+  });
+
+  protected objectiveChartOptions2: ChartOptions<'bar'> = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = context.parsed.x || 0;
+            return `${context.dataset.label}: ${value.toFixed(2)}億円`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: { stacked: true, title: { display: true, text: '売上(億円)' } },
+      y: { stacked: false },
+    },
+  };
+
   constructor(
     private calculatorService: CalculatorService,
     protected authService: AuthService
@@ -1239,8 +1301,81 @@ export class App implements OnInit, OnDestroy {
       this.updateSimulation();
 
       console.log('目的間結果比較完了（メイン）:', mainResults);
+      this.updateObjectiveChartData();
       this.isProcessing.set(false);
     }, 100);
+  }
+
+  toggleObjectiveDataSource(source: 'main' | 'additional'): void {
+    this.objectiveChartDataSource.set(source);
+    this.updateObjectiveChartData();
+  }
+
+  private updateObjectiveChartData(): void {
+    const dataSource = this.objectiveChartDataSource();
+    const results = dataSource === 'main'
+      ? this.objectiveComparisonResults()
+      : this.objectiveComparisonResultsWithAdditional();
+
+    if (results.length === 0) {
+      return;
+    }
+
+    const labels = results.map(r => r.objectiveName);
+    const totalSalesData = results.map(r => r.totalSales);
+    const totalProfitData = results.map(r => r.totalProfit);
+    const deptASalesData = results.map(r => r.deptASales);
+    const deptBSalesData = results.map(r => r.deptBSales);
+    const deptCSalesData = results.map(r => r.deptCSales);
+
+    // グラフA: 全社売上・利益
+    this.objectiveChartData1.set({
+      labels: labels,
+      datasets: [
+        {
+          label: '全社売上(億円)',
+          data: totalSalesData,
+          backgroundColor: '#2196f3',
+          borderColor: '#1976d2',
+          borderWidth: 1
+        },
+        {
+          label: '全社利益(億円)',
+          data: totalProfitData,
+          backgroundColor: '#28a745',
+          borderColor: '#1e7e34',
+          borderWidth: 1
+        },
+      ],
+    });
+
+    // グラフB: 各部門売上内訳
+    this.objectiveChartData2.set({
+      labels: labels,
+      datasets: [
+        {
+          label: 'A部売上(億円)',
+          data: deptASalesData,
+          backgroundColor: '#FF6B6B',
+          borderColor: '#E63946',
+          borderWidth: 1
+        },
+        {
+          label: 'B部売上(億円)',
+          data: deptBSalesData,
+          backgroundColor: '#4ECDC4',
+          borderColor: '#2C9B9E',
+          borderWidth: 1
+        },
+        {
+          label: 'C部売上(億円)',
+          data: deptCSalesData,
+          backgroundColor: '#FFE66D',
+          borderColor: '#FFD93D',
+          borderWidth: 1
+        },
+      ],
+    });
   }
 
   getEmployeeContribution(employee: Employee): number {
