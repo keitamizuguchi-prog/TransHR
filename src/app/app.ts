@@ -986,6 +986,11 @@ export class App implements OnInit, OnDestroy {
       employee.assignedDept = previousDept;
       this.updateSimulation();
       target.value = previousDept;
+    } else {
+      // 配置変更が成功した場合、比較結果をリセット（再計算が必要な状態にする）
+      this.objectiveComparisonResults.set([]);
+      this.objectiveComparisonResultsWithAdditional.set([]);
+      this.matrixComparisonResults.set([]);
     }
   }
 
