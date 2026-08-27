@@ -403,6 +403,21 @@ import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
       font-size: 9px;
       cursor: pointer;
     }
+    .emp-lock-btn {
+      width: 100%;
+      padding: 4px 6px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      background-color: white;
+      font-size: 10px;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: all 0.2s ease;
+    }
+    .emp-lock-btn:hover {
+      background-color: #f0f0f0;
+      border-color: #999;
+    }
     /* 右側：一時置き場 */
     .right-section {
       flex: 0 0 300px;

@@ -242,6 +242,14 @@
                     <option value="C">C</option>
                     <option value="Temp">一時</option>
                   </select>
+                  <button
+                    type="button"
+                    class="emp-lock-btn"
+                    (click)="toggleLock(emp)"
+                    [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+                  >
+                    {{ emp.isLocked ? '🔒' : '🔓' }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -323,6 +331,14 @@
                     <option value="C">C</option>
                     <option value="Temp">一時</option>
                   </select>
+                  <button
+                    type="button"
+                    class="emp-lock-btn"
+                    (click)="toggleLock(emp)"
+                    [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+                  >
+                    {{ emp.isLocked ? '🔒' : '🔓' }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -404,6 +420,14 @@
                     <option value="C">C</option>
                     <option value="Temp">一時</option>
                   </select>
+                  <button
+                    type="button"
+                    class="emp-lock-btn"
+                    (click)="toggleLock(emp)"
+                    [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+                  >
+                    {{ emp.isLocked ? '🔒' : '🔓' }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -450,6 +474,14 @@
                 <option value="C">C</option>
                 <option value="Temp">一時</option>
               </select>
+              <button
+                type="button"
+                class="emp-lock-btn"
+                (click)="toggleLock(emp)"
+                [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+              >
+                {{ emp.isLocked ? '🔒' : '🔓' }}
+              </button>
             </div>
           </div>
         </div>
