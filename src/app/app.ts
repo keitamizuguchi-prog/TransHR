@@ -746,12 +746,16 @@ export class App implements OnInit, OnDestroy {
 
   goToObjectiveComparison(): void {
     this.currentScreen.set('objective');
-    this.runAllOptimizationsComparison();
+    if (this.objectiveComparisonResults().length === 0) {
+      this.runAllOptimizationsComparison();
+    }
   }
 
   goToMatrixComparison(): void {
     this.currentScreen.set('matrix');
-    this.runMatrixComparison();
+    if (this.matrixComparisonResults().length === 0) {
+      this.runMatrixComparison();
+    }
   }
 
   private setupActivityListener(): void {
