@@ -8,10 +8,11 @@ import { CalculatorService } from './services/calculator.service';
 import { AuthService } from './services/auth.service';
 import { DEPT_CONFIG, MIN_TOTAL_SALES, FULFILLMENT_RATE_THRESHOLDS } from './constants/app.constants';
 import { BaseChartDirective } from 'ng2-charts';
-import { Chart as ChartJS, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, ArcElement } from 'chart.js';
 import type { ChartOptions } from 'chart.js';
+import Plugin from 'chartjs-plugin-datalabels';
 
-ChartJS.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+ChartJS.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, ArcElement, Plugin);
 
 @Component({
   selector: 'app-root',
@@ -784,6 +785,18 @@ export class App implements OnInit, OnDestroy {
           },
         },
       },
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        font: {
+          size: 10,
+          weight: 'bold',
+        },
+        formatter: (value) => {
+          return value ? `${(value as number).toFixed(2)}` : '';
+        },
+        color: '#333',
+      },
     },
     scales: {
       y: { stacked: false, title: { display: true, text: '金額(億円)' } },
@@ -800,8 +813,7 @@ export class App implements OnInit, OnDestroy {
     ],
   });
 
-  protected objectiveChartOptions2: ChartOptions<'bar'> = {
-    indexAxis: 'y',
+  protected objectiveChartOptions2: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: true,
     plugins: {
@@ -809,15 +821,25 @@ export class App implements OnInit, OnDestroy {
       tooltip: {
         callbacks: {
           label: (context) => {
-            const value = context.parsed.x || 0;
-            return `${context.dataset.label}: ${value.toFixed(2)}億円`;
+            const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
+            const value = context.parsed || 0;
+            const percent = ((value / total) * 100).toFixed(1);
+            return `${context.label}: ${value.toFixed(2)}億円 (${percent}%)`;
           },
         },
       },
-    },
-    scales: {
-      x: { stacked: true, title: { display: true, text: '売上(億円)' } },
-      y: { stacked: false },
+      datalabels: {
+        formatter: (value, context) => {
+          const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
+          const percent = ((value / total) * 100).toFixed(1);
+          return `${percent}%`;
+        },
+        color: '#fff',
+        font: {
+          size: 12,
+          weight: 'bold',
+        },
+      },
     },
   };
 
@@ -1349,30 +1371,19 @@ export class App implements OnInit, OnDestroy {
       ],
     });
 
-    // グラフB: 各部門売上内訳
+    // グラフB: 各部門売上内訳（円グラフ）
+    const totalDeptASales = deptASalesData.reduce((a, b) => a + b, 0);
+    const totalDeptBSales = deptBSalesData.reduce((a, b) => a + b, 0);
+    const totalDeptCSales = deptCSalesData.reduce((a, b) => a + b, 0);
+
     this.objectiveChartData2.set({
-      labels: labels,
+      labels: ['A部', 'B部', 'C部'],
       datasets: [
         {
-          label: 'A部売上(億円)',
-          data: deptASalesData,
-          backgroundColor: '#FF6B6B',
-          borderColor: '#E63946',
-          borderWidth: 1
-        },
-        {
-          label: 'B部売上(億円)',
-          data: deptBSalesData,
-          backgroundColor: '#4ECDC4',
-          borderColor: '#2C9B9E',
-          borderWidth: 1
-        },
-        {
-          label: 'C部売上(億円)',
-          data: deptCSalesData,
-          backgroundColor: '#FFE66D',
-          borderColor: '#FFD93D',
-          borderWidth: 1
+          data: [totalDeptASales, totalDeptBSales, totalDeptCSales],
+          backgroundColor: ['#FF6B6B', '#4ECDC4', '#FFE66D'],
+          borderColor: ['#E63946', '#2C9B9E', '#FFD93D'],
+          borderWidth: 2,
         },
       ],
     });

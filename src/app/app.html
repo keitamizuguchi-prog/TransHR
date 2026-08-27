@@ -679,13 +679,13 @@
 
         <!-- グラフB: 部門別売上内訳 -->
         <div style="margin-bottom: 32px;">
-          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">部門別売上内訳</h3>
+          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">部門別売上内訳（全体比）</h3>
           <canvas
             baseChart
-            [type]="'bar'"
+            [type]="'doughnut'"
             [data]="objectiveChartData2()"
             [options]="objectiveChartOptions2"
-            [aria-label]="'課題1から課題4のA部B部C部売上を積み上げ横棒グラフで表示。各課題における部門別売上の構成比を示します。'"
+            [aria-label]="'全目的における部門別売上の割合を円グラフで表示。各部門の売上構成比とパーセンテージを示します。'"
             style="max-height: 350px; min-height: 250px;"
           ></canvas>
         </div>
