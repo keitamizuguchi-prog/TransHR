@@ -184,15 +184,44 @@
                   <span class="stat-label">適正人数</span>
                   <span class="stat-value">{{ deptConfig['A'].optimalCount }}名</span>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item"
+                  *ngIf="optimizationExecuted()"
+                  [ngStyle]="{
+                    'background-color': getFulfillmentRateColor(result.deptA.fulfillmentRate).bg,
+                    'color': getFulfillmentRateColor(result.deptA.fulfillmentRate).text,
+                    'padding': '8px',
+                    'border-radius': '4px',
+                    'margin': '-4px'
+                  }">
                   <span class="stat-label">充足率</span>
-                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptA.fulfillmentRate! < 80 || result.deptA.fulfillmentRate! > 120) ? '#ff6b00' : '#1a1a1a' }">
-                    {{ optimizationExecuted() ? (result.deptA.fulfillmentRate | number:'1.1-1') : '‐' }}%
-                  </span>
+                  <span class="stat-value">{{ (result.deptA.fulfillmentRate | number:'1.1-1') }}%</span>
+                </div>
+                <div class="stat-item" *ngIf="!optimizationExecuted()">
+                  <span class="stat-label">充足率</span>
+                  <span class="stat-value">‐</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">最低配置人数</span>
                   <span class="stat-value">{{ deptConfig['A'].minCount }}名</span>
+                </div>
+
+                <!-- ブレットチャート（A事業部） -->
+                <div class="stat-divider" style="margin-bottom: 8px;"></div>
+                <div style="margin-top: 12px; font-size: 11px; color: #666;">
+                  <div style="margin-bottom: 4px; font-weight: 600;">配置人数ゲージ</div>
+                  <div [style]="'position: relative; height: 24px; background: linear-gradient(to right, #dc3545 0%, #dc3545 42.86%, #ffc107 42.86%, #ffc107 57.14%, #28a745 57.14%, #28a745 100%); border-radius: 4px; display: flex; align-items: center; padding: 0 4px;'">
+                    <!-- 最低配置人数マーカー（30人） -->
+                    <div style="position: absolute; left: 42.86%; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 0.5); top: 0;"></div>
+                    <!-- 実配置人数マーカー -->
+                    <div [style]="'position: absolute; left: ' + (optimizationExecuted() ? (result.deptA.headcount / 50 * 100) : 0) + '%; width: 3px; height: 100%; background-color: #fff; top: 0; box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);'"></div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px;">
+                    <span>0</span>
+                    <span>最低:{{ deptConfig['A'].minCount }}</span>
+                    <span>適正:{{ deptConfig['A'].optimalCount }}</span>
+                    <span>配置:{{ optimizationExecuted() ? result.deptA.headcount : '‐' }}</span>
+                    <span>50</span>
+                  </div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
@@ -273,15 +302,44 @@
                   <span class="stat-label">適正人数</span>
                   <span class="stat-value">{{ deptConfig['B'].optimalCount }}名</span>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item"
+                  *ngIf="optimizationExecuted()"
+                  [ngStyle]="{
+                    'background-color': getFulfillmentRateColor(result.deptB.fulfillmentRate).bg,
+                    'color': getFulfillmentRateColor(result.deptB.fulfillmentRate).text,
+                    'padding': '8px',
+                    'border-radius': '4px',
+                    'margin': '-4px'
+                  }">
                   <span class="stat-label">充足率</span>
-                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptB.fulfillmentRate! < 80 || result.deptB.fulfillmentRate! > 120) ? '#ff6b00' : '#1a1a1a' }">
-                    {{ optimizationExecuted() ? (result.deptB.fulfillmentRate | number:'1.1-1') : '‐' }}%
-                  </span>
+                  <span class="stat-value">{{ (result.deptB.fulfillmentRate | number:'1.1-1') }}%</span>
+                </div>
+                <div class="stat-item" *ngIf="!optimizationExecuted()">
+                  <span class="stat-label">充足率</span>
+                  <span class="stat-value">‐</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">最低配置人数</span>
                   <span class="stat-value">{{ deptConfig['B'].minCount }}名</span>
+                </div>
+
+                <!-- ブレットチャート（B事業部） -->
+                <div class="stat-divider" style="margin-bottom: 8px;"></div>
+                <div style="margin-top: 12px; font-size: 11px; color: #666;">
+                  <div style="margin-bottom: 4px; font-weight: 600;">配置人数ゲージ</div>
+                  <div [style]="'position: relative; height: 24px; background: linear-gradient(to right, #dc3545 0%, #dc3545 40%, #ffc107 40%, #ffc107 70%, #28a745 70%, #28a745 100%); border-radius: 4px; display: flex; align-items: center; padding: 0 4px;'">
+                    <!-- 最低配置人数マーカー（20人） -->
+                    <div style="position: absolute; left: 40%; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 0.5); top: 0;"></div>
+                    <!-- 実配置人数マーカー -->
+                    <div [style]="'position: absolute; left: ' + (optimizationExecuted() ? (result.deptB.headcount / 50 * 100) : 0) + '%; width: 3px; height: 100%; background-color: #fff; top: 0; box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);'"></div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px;">
+                    <span>0</span>
+                    <span>最低:{{ deptConfig['B'].minCount }}</span>
+                    <span>適正:{{ deptConfig['B'].optimalCount }}</span>
+                    <span>配置:{{ optimizationExecuted() ? result.deptB.headcount : '‐' }}</span>
+                    <span>50</span>
+                  </div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">
@@ -362,15 +420,44 @@
                   <span class="stat-label">適正人数</span>
                   <span class="stat-value">{{ deptConfig['C'].optimalCount }}名</span>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item"
+                  *ngIf="optimizationExecuted()"
+                  [ngStyle]="{
+                    'background-color': getFulfillmentRateColor(result.deptC.fulfillmentRate).bg,
+                    'color': getFulfillmentRateColor(result.deptC.fulfillmentRate).text,
+                    'padding': '8px',
+                    'border-radius': '4px',
+                    'margin': '-4px'
+                  }">
                   <span class="stat-label">充足率</span>
-                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && (result.deptC.fulfillmentRate! < 80 || result.deptC.fulfillmentRate! > 120) ? '#ff6b00' : '#1a1a1a' }">
-                    {{ optimizationExecuted() ? (result.deptC.fulfillmentRate | number:'1.1-1') : '‐' }}%
-                  </span>
+                  <span class="stat-value">{{ (result.deptC.fulfillmentRate | number:'1.1-1') }}%</span>
+                </div>
+                <div class="stat-item" *ngIf="!optimizationExecuted()">
+                  <span class="stat-label">充足率</span>
+                  <span class="stat-value">‐</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">最低配置人数</span>
                   <span class="stat-value">{{ deptConfig['C'].minCount }}名</span>
+                </div>
+
+                <!-- ブレットチャート（C事業部） -->
+                <div class="stat-divider" style="margin-bottom: 8px;"></div>
+                <div style="margin-top: 12px; font-size: 11px; color: #666;">
+                  <div style="margin-bottom: 4px; font-weight: 600;">配置人数ゲージ</div>
+                  <div [style]="'position: relative; height: 24px; background: linear-gradient(to right, #dc3545 0%, #dc3545 33.33%, #ffc107 33.33%, #ffc107 50%, #28a745 50%, #28a745 100%); border-radius: 4px; display: flex; align-items: center; padding: 0 4px;'">
+                    <!-- 最低配置人数マーカー（10人） -->
+                    <div style="position: absolute; left: 33.33%; width: 2px; height: 100%; background-color: rgba(0, 0, 0, 0.5); top: 0;"></div>
+                    <!-- 実配置人数マーカー -->
+                    <div [style]="'position: absolute; left: ' + (optimizationExecuted() ? (result.deptC.headcount / 50 * 100) : 0) + '%; width: 3px; height: 100%; background-color: #fff; top: 0; box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);'"></div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px;">
+                    <span>0</span>
+                    <span>最低:{{ deptConfig['C'].minCount }}</span>
+                    <span>適正:{{ deptConfig['C'].optimalCount }}</span>
+                    <span>配置:{{ optimizationExecuted() ? result.deptC.headcount : '‐' }}</span>
+                    <span>50</span>
+                  </div>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="stat-item">

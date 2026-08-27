@@ -6,7 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { DepartmentId, Employee, SimulationResult, OptimizationObjective, ObjectiveComparisonResult, MatrixComparisonResult } from './models/types';
 import { CalculatorService } from './services/calculator.service';
 import { AuthService } from './services/auth.service';
-import { DEPT_CONFIG, MIN_TOTAL_SALES } from './constants/app.constants';
+import { DEPT_CONFIG, MIN_TOTAL_SALES, FULFILLMENT_RATE_THRESHOLDS } from './constants/app.constants';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart as ChartJS, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import type { ChartOptions } from 'chart.js';
@@ -1376,6 +1376,27 @@ export class App implements OnInit, OnDestroy {
         },
       ],
     });
+  }
+
+  getFulfillmentRateColor(fulfillmentRate: number | undefined): { bg: string; text: string } {
+    if (!fulfillmentRate) return { bg: '#f0f0f0', text: '#333' };
+
+    if (fulfillmentRate >= 100 && fulfillmentRate <= FULFILLMENT_RATE_THRESHOLDS.OPTIMAL_MAX) {
+      // 100%～120%：緑（適正）
+      return { bg: '#d4edda', text: '#155724' };
+    } else if (fulfillmentRate >= FULFILLMENT_RATE_THRESHOLDS.CAUTION_MIN && fulfillmentRate < 100) {
+      // 90%～100%：黄色（注意）
+      return { bg: '#fff3cd', text: '#856404' };
+    } else if (fulfillmentRate >= FULFILLMENT_RATE_THRESHOLDS.WARNING_MIN && fulfillmentRate < FULFILLMENT_RATE_THRESHOLDS.CAUTION_MIN) {
+      // 80%～90%：黄色（注意）
+      return { bg: '#fff3cd', text: '#856404' };
+    } else if (fulfillmentRate >= FULFILLMENT_RATE_THRESHOLDS.CRITICAL_MIN && fulfillmentRate < FULFILLMENT_RATE_THRESHOLDS.WARNING_MIN) {
+      // 70%～80%：橙色（警告）
+      return { bg: '#ffe5cc', text: '#cc6600' };
+    } else {
+      // 70%未満：赤（危険）
+      return { bg: '#f8d7da', text: '#721c24' };
+    }
   }
 
   getEmployeeContribution(employee: Employee): number {
