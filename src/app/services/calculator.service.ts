@@ -258,6 +258,14 @@ export class CalculatorService {
   ): Employee[] {
     const EPSILON = 1e-6;
 
+    // 計測用変数
+    const perfStart = performance.now();
+    let iterationCount = 0;
+    let totalSimulationCount = 0;
+    let totalCandidateCount = 0;
+    let candidateEnumerationTime = 0;
+    let simulationTime = 0;
+
     // 確定的な初期配置（乱数なし）
     let currentEmployees = this.createDeterministicInitialPlacement(employees);
 
@@ -281,9 +289,15 @@ export class CalculatorService {
     let isImproved = true;
 
     while (isImproved) {
+      iterationCount++;
       isImproved = false;
+      let iterationCandidateCount = 0;
 
+      const simStart = performance.now();
       const currentResult = this.calculateTotalSimulation(currentEmployees);
+      totalSimulationCount++;
+      simulationTime += performance.now() - simStart;
+
       const currentScores = this.isValidPlacement(currentResult)
         ? this.getScoresForObjective(currentResult, objective)
         : { primaryScore: -Infinity, secondaryScore: -Infinity };
@@ -293,6 +307,7 @@ export class CalculatorService {
       let bestAction: BestAction | null = null;
 
       // パターン①: 1人移動パターンをすべて試す
+      const enumStart1 = performance.now();
       for (let i = 0; i < currentEmployees.length; i++) {
         // ロック済み社員は移動対象外
         if (currentEmployees[i].isLocked) {
@@ -303,10 +318,14 @@ export class CalculatorService {
         const otherDepts = (['A', 'B', 'C'] as const).filter(d => d !== currentDept);
 
         for (const targetDept of otherDepts) {
+          iterationCandidateCount++;
           const testEmployees = currentEmployees.map(e => ({ ...e }));
           testEmployees[i].assignedDept = targetDept;
 
+          const simStart2 = performance.now();
           const testResult = this.calculateTotalSimulation(testEmployees);
+          totalSimulationCount++;
+          simulationTime += performance.now() - simStart2;
 
           if (this.isValidPlacement(testResult)) {
             const testScores = this.getScoresForObjective(testResult, objective);
@@ -335,8 +354,10 @@ export class CalculatorService {
           }
         }
       }
+      candidateEnumerationTime += performance.now() - enumStart1;
 
       // パターン②: 2人入れ替えパターンをすべて試す
+      const enumStart2 = performance.now();
       for (let i = 0; i < currentEmployees.length; i++) {
         for (let j = i + 1; j < currentEmployees.length; j++) {
           // ロック済み社員のスワップは対象外
@@ -349,12 +370,16 @@ export class CalculatorService {
 
           // 異なる部署の2名のみを対象
           if (deptI !== deptJ) {
+            iterationCandidateCount++;
             const testEmployees = currentEmployees.map(e => ({ ...e }));
             const temp = testEmployees[i].assignedDept;
             testEmployees[i].assignedDept = testEmployees[j].assignedDept;
             testEmployees[j].assignedDept = temp;
 
+            const simStart3 = performance.now();
             const testResult = this.calculateTotalSimulation(testEmployees);
+            totalSimulationCount++;
+            simulationTime += performance.now() - simStart3;
 
             if (this.isValidPlacement(testResult)) {
               const testScores = this.getScoresForObjective(testResult, objective);
@@ -384,6 +409,8 @@ export class CalculatorService {
           }
         }
       }
+      candidateEnumerationTime += performance.now() - enumStart2;
+      totalCandidateCount += iterationCandidateCount;
 
       // 状態を更新
       if (bestAction) {
@@ -397,6 +424,27 @@ export class CalculatorService {
         isImproved = true;
       }
     }
+
+    // 計測結果をログ出力
+    const perfEnd = performance.now();
+    const totalTime = perfEnd - perfStart;
+    const avgTimePerSimulation = simulationTime / totalSimulationCount;
+    const avgCandidatesPerIteration = totalCandidateCount / iterationCount;
+    const simulationPercentage = (simulationTime / totalTime) * 100;
+    const enumerationPercentage = (candidateEnumerationTime / totalTime) * 100;
+
+    console.log('[最適化パフォーマンス計測結果]', {
+      '全体実行時間(ms)': totalTime.toFixed(2),
+      '反復回数': iterationCount,
+      '総候補数': totalCandidateCount,
+      '1反復あたりの平均候補数': avgCandidatesPerIteration.toFixed(2),
+      '総シミュレーション実行回数': totalSimulationCount,
+      '候補評価1回あたりの平均時間(ms)': avgTimePerSimulation.toFixed(4),
+      '候補列挙の合計時間(ms)': candidateEnumerationTime.toFixed(2),
+      'シミュレーションの合計時間(ms)': simulationTime.toFixed(2),
+      '候補列挙の時間割合(%)': enumerationPercentage.toFixed(2),
+      'シミュレーションの時間割合(%)': simulationPercentage.toFixed(2),
+    });
 
     const finalResult = this.calculateTotalSimulation(currentEmployees);
     console.log('[最適化完了後]', {
