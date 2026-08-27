@@ -7,6 +7,8 @@ import {
   signOut,
   onAuthStateChanged,
   User,
+  setPersistence,
+  browserSessionPersistence,
 } from 'firebase/auth';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -49,6 +51,9 @@ export class AuthService {
       const app = initializeApp(environment.firebase);
       this.auth = getAuth(app);
       console.log('[AuthService] Firebase initialized');
+
+      // セッションpersistenceを設定（ブラウザを閉じるとセッションが消える）
+      setPersistence(this.auth, browserSessionPersistence);
 
       // 認証状態をリスニング
       onAuthStateChanged(this.auth, (user) => {
