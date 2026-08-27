@@ -137,8 +137,17 @@
 
     <!-- メイン画面（ダッシュボード） -->
     <div class="main-wrapper" *ngIf="currentScreen() === 'dashboard'">
+      <!-- ファイル未選択時のガイダンス -->
+      <div *ngIf="mainFileName() === '' && !isProcessing()" class="empty-state-guide">
+        <div class="empty-state-content">
+          <div class="empty-state-icon">📂</div>
+          <h2 class="empty-state-title">従業員ファイルを選択してください</h2>
+          <p class="empty-state-description">ヘッダーから従業員ファイルを選択すると、人材配置シミュレーションが開始されます。</p>
+        </div>
+      </div>
+
       <!-- 左側：事業部エリア（75%） -->
-      <div class="left-section">
+      <div class="left-section" *ngIf="mainFileName() !== ''">
         <!-- 全社サマリー -->
         <div class="summary-bar" *ngIf="simulationResult() as result">
           <div class="summary-item">
@@ -400,7 +409,7 @@
       </div>
 
       <!-- 右側：一時置き場（開閉型） -->
-      <div class="right-section" [ngClass]="{ 'collapsed': !tempPanelOpen() }">
+      <div class="right-section" [ngClass]="{ 'collapsed': !tempPanelOpen() }" *ngIf="mainFileName() !== ''">
         <div class="temp-panel" [ngClass]="{ 'collapsed': !tempPanelOpen() }">
           <div class="temp-header" [ngClass]="{ 'collapsed': !tempPanelOpen() }">
             <ng-container *ngIf="tempPanelOpen(); else collapsedHeader">
