@@ -1,4 +1,4 @@
-import { Component, signal, ViewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, computed, ViewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -8,11 +8,11 @@ import { CalculatorService } from './services/calculator.service';
 import { AuthService } from './services/auth.service';
 import { DEPT_CONFIG, MIN_TOTAL_SALES, FULFILLMENT_RATE_THRESHOLDS } from './constants/app.constants';
 import { BaseChartDirective } from 'ng2-charts';
-import { Chart as ChartJS, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, ArcElement } from 'chart.js';
+import { Chart as ChartJS, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, ArcElement, LineController, LineElement, PointElement } from 'chart.js';
 import type { ChartOptions } from 'chart.js';
 import Plugin from 'chartjs-plugin-datalabels';
 
-ChartJS.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, ArcElement, Plugin);
+ChartJS.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, ArcElement, Plugin);
 
 @Component({
   selector: 'app-root',
@@ -254,32 +254,75 @@ ChartJS.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip,
       flex-direction: column;
       gap: 16px;
     }
+    /* サマリーバーラッパー */
+    .summary-bar-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .summary-badge-group {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      min-height: 24px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-badge.unplaced {
+      background-color: #f0f0f0;
+      color: #666;
+    }
+    .status-badge.alert {
+      background-color: #dc3545;
+      color: white;
+    }
     /* サマリーバー */
     .summary-bar {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       background: white;
-      padding: 16px;
+      padding: 20px;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       border: 1px solid #f0f4f8;
     }
     .summary-item {
-      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 6px;
+      background: #fafbfc;
+    }
+    .summary-item-primary {
+      background: #f0fdf4;
     }
     .summary-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: #999;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .summary-value {
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 26px;
+      font-weight: 800;
       color: #1a1a1a;
+      line-height: 1.2;
+    }
+    .summary-value-primary {
+      font-size: 32px;
+      font-weight: 800;
+      color: #10b981;
     }
     /* 事業部カードコンテナ */
     .dept-cards-container {
@@ -692,6 +735,7 @@ export class App implements OnInit, OnDestroy {
   protected employees = signal<Employee[]>([]);
   protected mainEmployees = signal<Employee[]>([]);
   protected simulationResult = signal<SimulationResult>(this.createEmptyResult());
+  protected optimizationExplanation = signal<any>(null);
   protected objectiveComparisonResults = signal<ObjectiveComparisonResult[]>([]);
   protected objectiveComparisonResultsWithAdditional = signal<ObjectiveComparisonResult[]>([]);
   protected matrixComparisonResults = signal<MatrixComparisonResult[]>([]);
@@ -707,6 +751,12 @@ export class App implements OnInit, OnDestroy {
   protected optimizationReason: string = '';
   protected currentScreen = signal<'dashboard' | 'objective' | 'matrix'>('dashboard');
   protected tempPanelOpen = signal<boolean>(true);
+
+  // 従業員一括配置管理
+  employeeSearchQuery: string = '';
+  employeeSearchResults: Employee[] = [];
+  selectedEmployeesForBulkChange: Employee[] = [];
+  bulkChangeDept: string = '';
 
   // グラフ用データ
   protected matrixChartLabels = signal<string[]>([]);
@@ -730,7 +780,6 @@ export class App implements OnInit, OnDestroy {
     ],
   });
   protected matrixChartOptions: ChartOptions<'bar'> = {
-    indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: true,
     plugins: {
@@ -740,28 +789,76 @@ export class App implements OnInit, OnDestroy {
       tooltip: {
         callbacks: {
           label: (context) => {
-            const value = context.parsed.x || 0;
-            return `${context.dataset.label}: ${value.toFixed(2)}億円`;
+            const value = context.parsed.y || 0;
+            const label = context.dataset.label || '';
+            if (label.includes('一人あたり')) {
+              return `${label}: ${value.toFixed(0)}万円`;
+            }
+            return `${label}: ${value.toFixed(2)}億円`;
           },
         },
+      },
+      datalabels: {
+        formatter: (value: number, context: any) => {
+          const label = context.dataset.label || '';
+          if (label.includes('一人あたり')) {
+            return value.toFixed(0);
+          }
+          return value.toFixed(2);
+        },
+        color: '#333',
+        font: {
+          size: 12,
+          weight: 'bold',
+        },
+        anchor: 'end',
+        align: 'top',
+        offset: 10,
       },
     },
     scales: {
       x: {
-        stacked: false,
+        type: 'category',
         title: {
           display: true,
-          text: '差分(億円)',
+          text: '課題',
         },
       },
       y: {
+        type: 'linear',
+        position: 'left',
         stacked: false,
+        title: {
+          display: true,
+          text: '売上・利益差分(億円)',
+        },
+        grid: {
+          drawOnChartArea: true,
+        },
+      },
+      y1: {
+        type: 'linear',
+        position: 'right',
+        stacked: false,
+        title: {
+          display: true,
+          text: '一人あたり利益差分(万円)',
+        },
+        beginAtZero: true,
+        grid: {
+          drawOnChartArea: false,
+        },
       },
     },
   };
 
   // 目的別比較用グラフデータ
   protected objectiveChartDataSource = signal<'main' | 'additional'>('main');
+  protected currentObjectiveResults = computed(() => {
+    return this.objectiveChartDataSource() === 'main'
+      ? this.objectiveComparisonResults()
+      : this.objectiveComparisonResultsWithAdditional();
+  });
 
   protected objectiveChartData1 = signal<any>({
     labels: [],
@@ -950,6 +1047,11 @@ export class App implements OnInit, OnDestroy {
       },
       totalSales: 0,
       totalProfit: 0,
+      totalCost: 0,
+      totalHeadcount: 0,
+      perCapitaProfit: 0,
+      unplacedCount: 0,
+      alertCount: 0,
     };
   }
 
@@ -1045,12 +1147,21 @@ export class App implements OnInit, OnDestroy {
     if (this.additionalFileInput) {
       this.additionalFileInput.nativeElement.value = '';
     }
+    // 採用予定社員を削除
     const remainingEmployees = this.employees().filter((emp) => emp.source !== 'candidate');
-    this.employees.set(remainingEmployees);
+
+    // 元の従業員の配置先を一時置き場にリセット（再現性の確保）
+    const resetEmployees = remainingEmployees.map(emp => ({
+      ...emp,
+      assignedDept: 'Temp' as DepartmentId
+    }));
+
+    this.employees.set(resetEmployees);
     this.additionalFileLoaded.set(false);
     this.additionalFileName.set('');
     this.matrixComparisonResults.set([]);
     this.objectiveComparisonResultsWithAdditional.set([]);
+    this.optimizationExecuted.set(false);
     this.updateSimulation();
   }
 
@@ -1114,45 +1225,35 @@ export class App implements OnInit, OnDestroy {
     this.updateSimulation();
 
     const result = this.simulationResult();
-    if (result && this.isConstraintViolated(result)) {
-      alert('制約条件（全社売上58億円以上、または各事業部の最低配置人数）を満たさないため、移動できません。');
-
-      employee.assignedDept = previousDept;
-      this.updateSimulation();
-      target.value = previousDept;
-    } else {
-      // 配置変更が成功した場合、比較結果をリセット（再計算が必要な状態にする）
-      this.objectiveComparisonResults.set([]);
-      this.objectiveComparisonResultsWithAdditional.set([]);
-      this.matrixComparisonResults.set([]);
+    if (result) {
+      const violationMessage = this.getConstraintViolationMessage(result);
+      if (violationMessage) {
+        alert(violationMessage);
+        employee.assignedDept = previousDept;
+        this.updateSimulation();
+        target.value = previousDept;
+        return;
+      }
     }
+
+    // 配置変更が成功した場合、比較結果をリセット（再計算が必要な状態にする）
+    this.objectiveComparisonResults.set([]);
+    this.objectiveComparisonResultsWithAdditional.set([]);
+    this.matrixComparisonResults.set([]);
   }
 
-  private isConstraintViolated(result: SimulationResult): boolean {
-    if (result.totalSales < this.minTotalSales) {
-      return true;
-    }
-
-    if (result.deptA.headcount < this.deptConfig['A'].minCount) {
-      return true;
-    }
-
-    if (result.deptB.headcount < this.deptConfig['B'].minCount) {
-      return true;
-    }
-
-    if (result.deptC.headcount < this.deptConfig['C'].minCount) {
-      return true;
-    }
-
-    return false;
-  }
 
   private updateSimulation(): void {
     const result = this.calculatorService.calculateTotalSimulation(
       this.employees()
     );
     this.simulationResult.set(result);
+
+    // 一時置き場に誰も残っていなければ、パネルを自動的に閉じる
+    const tempEmployeesCount = this.employees().filter(emp => emp.assignedDept === 'Temp').length;
+    if (tempEmployeesCount === 0) {
+      this.tempPanelOpen.set(false);
+    }
   }
 
   runOptimization(): void {
@@ -1214,8 +1315,16 @@ export class App implements OnInit, OnDestroy {
 
       this.optimizationExecuted.set(true);
       this.updateSimulation();
+
+      // 説明テキストを生成
+      const explanation = this.calculatorService.generateOptimizationExplanation(
+        optimizedEmployees,
+        this.simulationResult(),
+        this.selectedObjective
+      );
+      this.optimizationExplanation.set(explanation);
+
       this.isProcessing.set(false);
-      this.tempPanelOpen.set(false);
     }, 100);
   }
 
@@ -1260,8 +1369,11 @@ export class App implements OnInit, OnDestroy {
           deptAHeadcount: simResult.deptA.headcount,
           deptBHeadcount: simResult.deptB.headcount,
           deptCHeadcount: simResult.deptC.headcount,
+          totalHeadcount: simResult.totalHeadcount,
           totalSales: simResult.totalSales,
           totalProfit: simResult.totalProfit,
+          totalCost: simResult.totalCost,
+          perCapitaProfit: simResult.perCapitaProfit,
           deptASales: simResult.deptA.finalSales,
           deptAProfit: simResult.deptA.profit,
           deptBSales: simResult.deptB.finalSales,
@@ -1294,8 +1406,11 @@ export class App implements OnInit, OnDestroy {
             deptAHeadcount: simResult.deptA.headcount,
             deptBHeadcount: simResult.deptB.headcount,
             deptCHeadcount: simResult.deptC.headcount,
+            totalHeadcount: simResult.totalHeadcount,
             totalSales: simResult.totalSales,
             totalProfit: simResult.totalProfit,
+            totalCost: simResult.totalCost,
+            perCapitaProfit: simResult.perCapitaProfit,
             deptASales: simResult.deptA.finalSales,
             deptAProfit: simResult.deptA.profit,
             deptBSales: simResult.deptB.finalSales,
@@ -1324,6 +1439,14 @@ export class App implements OnInit, OnDestroy {
   toggleObjectiveDataSource(source: 'main' | 'additional'): void {
     this.objectiveChartDataSource.set(source);
     this.updateObjectiveChartData();
+  }
+
+  toggleObjectiveDataSourceWithCheck(source: 'main' | 'additional'): void {
+    if (!this.additionalFileLoaded()) {
+      alert('採用予定ファイルを読み込んでください');
+      return;
+    }
+    this.toggleObjectiveDataSource(source);
   }
 
   private updateObjectiveChartData(): void {
@@ -1445,6 +1568,17 @@ export class App implements OnInit, OnDestroy {
     employee.isLocked = !employee.isLocked;
   }
 
+  isHighestSkill(employee: Employee, skillType: 'sales' | 'management' | 'pioneering' | 'training'): boolean {
+    const skills = {
+      sales: employee.salesPower,
+      management: employee.managementPower,
+      pioneering: employee.pioneeringPower,
+      training: employee.trainingPower,
+    };
+    const maxSkill = Math.max(...Object.values(skills));
+    return skills[skillType] === maxSkill;
+  }
+
   private getPlacementString(result: SimulationResult): string {
     return `A:${result.deptA.headcount}, B:${result.deptB.headcount}, C:${result.deptC.headcount}`;
   }
@@ -1506,17 +1640,21 @@ export class App implements OnInit, OnDestroy {
         // 差分を計算
         const salesDiff = afterResult.totalSales - beforeResult.totalSales;
         const profitDiff = afterResult.totalProfit - beforeResult.totalProfit;
+        const perCapitaProfitDiff = afterResult.perCapitaProfit - beforeResult.perCapitaProfit;
 
         results.push({
           objectiveName: objectiveLabel,
           beforePlacement: this.getPlacementString(beforeResult),
           beforeTotalSales: beforeResult.totalSales,
           beforeTotalProfit: beforeResult.totalProfit,
+          beforePerCapitaProfit: beforeResult.perCapitaProfit,
           afterPlacement: this.getPlacementString(afterResult),
           afterTotalSales: afterResult.totalSales,
           afterTotalProfit: afterResult.totalProfit,
+          afterPerCapitaProfit: afterResult.perCapitaProfit,
           salesDiff,
           profitDiff,
+          perCapitaProfitDiff,
         });
       }
 
@@ -1536,12 +1674,14 @@ export class App implements OnInit, OnDestroy {
     const labels = results.map(r => r.objectiveName);
     const salesDiffData = results.map(r => r.salesDiff);
     const profitDiffData = results.map(r => r.profitDiff);
+    const perCapitaProfitDiffData = results.map(r => r.perCapitaProfitDiff);
 
     this.matrixChartLabels.set(labels);
     this.matrixChartData.set({
       labels: labels,
       datasets: [
         {
+          type: 'bar',
           label: '売上差分(億円)',
           data: salesDiffData,
           backgroundColor: (context: any) => {
@@ -1551,8 +1691,10 @@ export class App implements OnInit, OnDestroy {
             return context.parsed.x >= 0 ? '#1976d2' : '#c82333';
           },
           borderWidth: 1,
+          yAxisID: 'y',
         },
         {
+          type: 'bar',
           label: '利益差分(億円)',
           data: profitDiffData,
           backgroundColor: (context: any) => {
@@ -1562,6 +1704,23 @@ export class App implements OnInit, OnDestroy {
             return context.parsed.x >= 0 ? '#1e7e34' : '#c82333';
           },
           borderWidth: 1,
+          yAxisID: 'y',
+        },
+        {
+          type: 'line',
+          label: '一人あたり利益差分(万円)',
+          data: perCapitaProfitDiffData,
+          borderColor: '#ff9800',
+          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: false,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#ff9800',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          yAxisID: 'y1',
         },
       ],
     });
@@ -1749,5 +1908,169 @@ export class App implements OnInit, OnDestroy {
     }
 
     return { employees };
+  }
+
+  // 従業員一括配置管理メソッド
+  onEmployeeSearchInput(): void {
+    const query = this.employeeSearchQuery.trim();
+    if (query.length === 0) {
+      this.employeeSearchResults = [];
+      return;
+    }
+
+    // 社員番号用：大文字で検索
+    const queryUpperCase = query.toUpperCase();
+    // 名前用：そのまま（日本語対応）
+    const queryLower = query.toLowerCase();
+
+    console.log('検索クエリ:', query, 'queryLower:', queryLower);
+    console.log('従業員数:', this.employees().length);
+
+    this.employeeSearchResults = this.employees().filter(emp => {
+      const id = emp.id.toUpperCase();
+      const name = emp.name ? emp.name.toLowerCase() : '';
+      const matches = id.includes(queryUpperCase) || name.includes(queryLower);
+      if (matches) {
+        console.log('マッチ:', emp.id, emp.name);
+      }
+      return matches;
+    });
+
+    console.log('検索結果数:', this.employeeSearchResults.length);
+  }
+
+  isEmployeeSelected(emp: Employee): boolean {
+    return this.selectedEmployeesForBulkChange.some(selected => selected.id === emp.id);
+  }
+
+  toggleEmployeeSelection(emp: Employee): void {
+    const index = this.selectedEmployeesForBulkChange.findIndex(selected => selected.id === emp.id);
+    if (index >= 0) {
+      this.selectedEmployeesForBulkChange.splice(index, 1);
+    } else {
+      this.selectedEmployeesForBulkChange.push(emp);
+    }
+  }
+
+  clearEmployeeSearch(): void {
+    this.employeeSearchQuery = '';
+    this.employeeSearchResults = [];
+    this.selectedEmployeesForBulkChange = [];
+    this.bulkChangeDept = '';
+  }
+
+  private getConstraintViolationMessage(result: SimulationResult): string | null {
+    // 制約1: 全社売上が58億円を下回らない
+    if (result.totalSales < MIN_TOTAL_SALES) {
+      return `操作不可: 全社売上が58億円を下回ります（現在値: ${result.totalSales.toFixed(2)}億円）`;
+    }
+
+    // 制約2: 各事業部が最低配置人数を下回らない
+    const deptConstraints = [
+      { deptId: 'A', headcount: result.deptA.headcount, minCount: DEPT_CONFIG.A.minCount },
+      { deptId: 'B', headcount: result.deptB.headcount, minCount: DEPT_CONFIG.B.minCount },
+      { deptId: 'C', headcount: result.deptC.headcount, minCount: DEPT_CONFIG.C.minCount }
+    ];
+
+    for (const constraint of deptConstraints) {
+      if (constraint.headcount < constraint.minCount) {
+        return `操作不可: ${constraint.deptId}事業部の人数が最低配置人数(${constraint.minCount}名)を下回ります（現在値: ${constraint.headcount}名）`;
+      }
+    }
+
+    return null;
+  }
+
+  applyBulkChange(): void {
+    if (this.selectedEmployeesForBulkChange.length === 0 || !this.bulkChangeDept) {
+      console.log('applyBulkChange中止: 選択者なし');
+      return;
+    }
+
+    // 選択された従業員の配置先を変更（仮の状態）
+    const updatedEmployees = this.employees().map(emp => {
+      const isSelected = this.selectedEmployeesForBulkChange.some(selected => selected.id === emp.id);
+      if (isSelected) {
+        return { ...emp, assignedDept: this.bulkChangeDept as DepartmentId };
+      }
+      return emp;
+    });
+
+    // 制約チェック
+    const simResult = this.calculatorService.calculateTotalSimulation(updatedEmployees);
+    console.log('制約チェック - 全社売上:', simResult.totalSales, '億円');
+    console.log('MIN_TOTAL_SALES:', MIN_TOTAL_SALES);
+    console.log('部門人数:', { A: simResult.deptA.headcount, B: simResult.deptB.headcount, C: simResult.deptC.headcount });
+
+    const violationMessage = this.getConstraintViolationMessage(simResult);
+    console.log('制約違反メッセージ:', violationMessage);
+
+    if (violationMessage) {
+      alert(violationMessage);
+      return;
+    }
+
+    // 制約チェックOKならば実際に変更を適用
+    this.employees.set(updatedEmployees);
+    this.updateSimulation();
+
+    // 配置変更が成功した場合、比較結果をリセット（再計算が必要な状態にする）
+    this.objectiveComparisonResults.set([]);
+    this.objectiveComparisonResultsWithAdditional.set([]);
+    this.matrixComparisonResults.set([]);
+
+    // 検索と選択をクリア
+    this.clearEmployeeSearch();
+    console.log('一括変更完了');
+  }
+
+  applyBulkLock(): void {
+    if (this.selectedEmployeesForBulkChange.length === 0) {
+      return;
+    }
+
+    // 選択された従業員をロック
+    const updatedEmployees = this.employees().map(emp => {
+      const isSelected = this.selectedEmployeesForBulkChange.some(selected => selected.id === emp.id);
+      if (isSelected) {
+        return { ...emp, isLocked: true };
+      }
+      return emp;
+    });
+
+    this.employees.set(updatedEmployees);
+
+    // 選択済みリストの isLocked フラグも更新
+    this.selectedEmployeesForBulkChange = this.selectedEmployeesForBulkChange.map(emp => ({
+      ...emp,
+      isLocked: true,
+    }));
+
+    console.log(`${this.selectedEmployeesForBulkChange.length}名をロックしました`);
+  }
+
+  applyBulkUnlock(): void {
+    if (this.selectedEmployeesForBulkChange.length === 0) {
+      return;
+    }
+
+    // 選択された従業員をロック解除
+    const updatedEmployees = this.employees().map(emp => {
+      const isSelected = this.selectedEmployeesForBulkChange.some(selected => selected.id === emp.id);
+      if (isSelected) {
+        return { ...emp, isLocked: false };
+      }
+      return emp;
+    });
+
+    this.employees.set(updatedEmployees);
+
+    // 選択済みリストの isLocked フラグも更新
+    this.selectedEmployeesForBulkChange = this.selectedEmployeesForBulkChange.map(emp => ({
+      ...emp,
+      isLocked: false,
+    }));
+
+    console.log(`${this.selectedEmployeesForBulkChange.length}名をロック解除しました`);
   }
 }
