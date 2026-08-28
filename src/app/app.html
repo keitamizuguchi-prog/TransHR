@@ -906,13 +906,15 @@
                 <th style="text-align: left;"></th>
                 <th>人数配置</th>
                 <th>全社売上(億円)</th>
+                <th>全社利益(億円)</th>
                 <th>一人あたり利益(万円)</th>
                 <th>人数配置</th>
                 <th>全社売上(億円)</th>
+                <th>全社利益(億円)</th>
                 <th>一人あたり利益(万円)</th>
-                <th>(億円)</th>
-                <th>(億円)</th>
-                <th>(万円)</th>
+                <th>売上差分(億円)</th>
+                <th>利益差分(億円)</th>
+                <th>一人あたり利益差分(万円)</th>
               </tr>
             </thead>
             <tbody>
@@ -920,9 +922,11 @@
                 <td class="objective-name">{{ result.objectiveName }}</td>
                 <td>{{ result.beforePlacement }}</td>
                 <td>{{ result.beforeTotalSales | number:'1.2-2' }}</td>
+                <td>{{ result.beforeTotalProfit | number:'1.2-2' }}</td>
                 <td>{{ result.beforePerCapitaProfit | number:'1.0-0' }}</td>
                 <td>{{ result.afterPlacement }}</td>
                 <td>{{ result.afterTotalSales | number:'1.2-2' }}</td>
+                <td>{{ result.afterTotalProfit | number:'1.2-2' }}</td>
                 <td>{{ result.afterPerCapitaProfit | number:'1.0-0' }}</td>
                 <td [ngStyle]="{ 'color': result.salesDiff > 0 ? '#28a745' : '#dc3545' }">
                   {{ result.salesDiff | number:'1.2-2' }}
