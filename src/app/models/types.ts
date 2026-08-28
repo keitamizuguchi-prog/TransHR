@@ -40,12 +40,42 @@ export interface DeptMetrics {
   fulfillmentRate?: number;
 }
 
+export interface DeptSkillAverage {
+  sales: number;
+  management: number;
+  pioneering: number;
+  training: number;
+}
+
+export interface OptimizationExplanation {
+  overallExplanation: string;
+  deptA: {
+    explanation: string;
+    skillAverages: DeptSkillAverage;
+  };
+  deptB: {
+    explanation: string;
+    skillAverages: DeptSkillAverage;
+  };
+  deptC: {
+    explanation: string;
+    skillAverages: DeptSkillAverage;
+  };
+}
+
 export interface SimulationResult {
   deptA: DeptMetrics;
   deptB: DeptMetrics;
   deptC: DeptMetrics;
   totalSales: number;
   totalProfit: number;
+  totalCost: number;
+  totalHeadcount: number;
+  perCapitaProfit: number;
+  unplacedCount: number;
+  alertCount: number;
+  alertDetails: string[];
+  explanation?: OptimizationExplanation;
 }
 
 export interface ObjectiveComparisonResult {
@@ -53,8 +83,11 @@ export interface ObjectiveComparisonResult {
   deptAHeadcount: number;
   deptBHeadcount: number;
   deptCHeadcount: number;
+  totalHeadcount: number;
   totalSales: number;
   totalProfit: number;
+  totalCost: number;
+  perCapitaProfit: number;
   deptASales: number;
   deptAProfit: number;
   deptBSales: number;
@@ -69,11 +102,14 @@ export interface MatrixComparisonResult {
   beforePlacement: string;
   beforeTotalSales: number;
   beforeTotalProfit: number;
+  beforePerCapitaProfit: number;
 
   afterPlacement: string;
   afterTotalSales: number;
   afterTotalProfit: number;
+  afterPerCapitaProfit: number;
 
   salesDiff: number;
   profitDiff: number;
+  perCapitaProfitDiff: number;
 }

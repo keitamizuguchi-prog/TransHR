@@ -852,6 +852,10 @@ export class App implements OnInit, OnDestroy {
     },
   };
 
+  // アラート詳細表示
+  protected showAlertModal = signal<boolean>(false);
+  protected alertDetailsToShow = signal<string[]>([]);
+
   // 目的別比較用グラフデータ
   protected objectiveChartDataSource = signal<'main' | 'additional'>('main');
   protected currentObjectiveResults = computed(() => {
@@ -982,6 +986,18 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
+  showAlertDetails(): void {
+    const result = this.simulationResult();
+    if (result && result.alertDetails && result.alertDetails.length > 0) {
+      this.alertDetailsToShow.set(result.alertDetails);
+      this.showAlertModal.set(true);
+    }
+  }
+
+  closeAlertModal(): void {
+    this.showAlertModal.set(false);
+  }
+
   goToDashboard(): void {
     this.currentScreen.set('dashboard');
   }
@@ -1052,6 +1068,7 @@ export class App implements OnInit, OnDestroy {
       perCapitaProfit: 0,
       unplacedCount: 0,
       alertCount: 0,
+      alertDetails: [],
     };
   }
 

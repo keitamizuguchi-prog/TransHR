@@ -109,12 +109,7 @@ export class CalculatorService {
   }
 
   calculateTotalSimulation(employees: Employee[]): SimulationResult {
-    const startMark = `sim-start-${performance.now()}`;
-    performance.mark(startMark);
-
     // Temp 以外の社員のみを対象
-    const filterMark = `filter-start-${performance.now()}`;
-    performance.mark(filterMark);
     const assignedEmployees = employees.filter(
       (emp) => emp.assignedDept !== 'Temp'
     );
@@ -129,39 +124,61 @@ export class CalculatorService {
     const deptCEmployees = assignedEmployees.filter(
       (emp) => emp.assignedDept === 'C'
     );
-    const filterEndMark = `filter-end-${performance.now()}`;
-    performance.mark(filterEndMark);
-    performance.measure('filtering', filterMark, filterEndMark);
 
     // 各事業部のメトリクスを計算
-    const deptAMark = `deptA-start-${performance.now()}`;
-    performance.mark(deptAMark);
     const deptA = this.calculateDeptMetrics(deptAEmployees, 'A');
-    const deptAEndMark = `deptA-end-${performance.now()}`;
-    performance.mark(deptAEndMark);
-    performance.measure('calculateDeptMetrics-A', deptAMark, deptAEndMark);
-
-    const deptBMark = `deptB-start-${performance.now()}`;
-    performance.mark(deptBMark);
     const deptB = this.calculateDeptMetrics(deptBEmployees, 'B');
-    const deptBEndMark = `deptB-end-${performance.now()}`;
-    performance.mark(deptBEndMark);
-    performance.measure('calculateDeptMetrics-B', deptBMark, deptBEndMark);
-
-    const deptCMark = `deptC-start-${performance.now()}`;
-    performance.mark(deptCMark);
     const deptC = this.calculateDeptMetrics(deptCEmployees, 'C');
-    const deptCEndMark = `deptC-end-${performance.now()}`;
-    performance.mark(deptCEndMark);
-    performance.measure('calculateDeptMetrics-C', deptCMark, deptCEndMark);
 
-    // 全社売上
+    // 全社売上・利益
     const totalSales = deptA.finalSales + deptB.finalSales + deptC.finalSales;
+    const totalCost = deptA.deptCost + deptB.deptCost + deptC.deptCost;
     const totalProfit = deptA.profit + deptB.profit + deptC.profit;
+    const totalHeadcount = assignedEmployees.length;
 
-    const endMark = `sim-end-${performance.now()}`;
-    performance.mark(endMark);
-    performance.measure('calculateTotalSimulation', startMark, endMark);
+    // 一人あたり利益（万円単位に変換: 全社利益[億円] × 10,000 / 人数）
+    const perCapitaProfit = totalHeadcount > 0 ? (totalProfit * 10000) / totalHeadcount : 0;
+
+    // 未配置人数
+    const unplacedCount = employees.filter(emp => emp.assignedDept === 'Temp').length;
+
+    // アラート発生数（最低人数未達または充足率ペナルティ）
+    const deptConfig = DEPT_CONFIG;
+    let alertCount = 0;
+    const alertDetails: string[] = [];
+
+    if (deptA.headcount < deptConfig['A'].minCount) {
+      alertCount++;
+      alertDetails.push(`A事業部: 配置人数${deptA.headcount}名（最低配置人数${deptConfig['A'].minCount}名）`);
+    }
+    if (deptA.fulfillmentRate !== undefined && deptA.fulfillmentRate < 100) {
+      if (deptA.headcount >= deptConfig['A'].minCount) {
+        alertCount++;
+      }
+      alertDetails.push(`A事業部: 充足率${(deptA.fulfillmentRate).toFixed(1)}%（ペナルティ適用）`);
+    }
+
+    if (deptB.headcount < deptConfig['B'].minCount) {
+      alertCount++;
+      alertDetails.push(`B事業部: 配置人数${deptB.headcount}名（最低配置人数${deptConfig['B'].minCount}名）`);
+    }
+    if (deptB.fulfillmentRate !== undefined && deptB.fulfillmentRate < 100) {
+      if (deptB.headcount >= deptConfig['B'].minCount) {
+        alertCount++;
+      }
+      alertDetails.push(`B事業部: 充足率${(deptB.fulfillmentRate).toFixed(1)}%（ペナルティ適用）`);
+    }
+
+    if (deptC.headcount < deptConfig['C'].minCount) {
+      alertCount++;
+      alertDetails.push(`C事業部: 配置人数${deptC.headcount}名（最低配置人数${deptConfig['C'].minCount}名）`);
+    }
+    if (deptC.fulfillmentRate !== undefined && deptC.fulfillmentRate < 100) {
+      if (deptC.headcount >= deptConfig['C'].minCount) {
+        alertCount++;
+      }
+      alertDetails.push(`C事業部: 充足率${(deptC.fulfillmentRate).toFixed(1)}%（ペナルティ適用）`);
+    }
 
     return {
       deptA,
@@ -169,6 +186,12 @@ export class CalculatorService {
       deptC,
       totalSales,
       totalProfit,
+      totalCost,
+      totalHeadcount,
+      perCapitaProfit,
+      unplacedCount,
+      alertCount,
+      alertDetails,
     };
   }
 
@@ -184,6 +207,94 @@ export class CalculatorService {
       emp.pioneeringPower * config.weights.pioneering +
       emp.trainingPower * config.weights.training
     );
+  }
+
+  generateOptimizationExplanation(
+    employees: Employee[],
+    result: SimulationResult,
+    objective: OptimizationObjective
+  ): import('../models/types').OptimizationExplanation {
+    const deptAEmployees = employees.filter(e => e.assignedDept === 'A');
+    const deptBEmployees = employees.filter(e => e.assignedDept === 'B');
+    const deptCEmployees = employees.filter(e => e.assignedDept === 'C');
+
+    const calculateSkillAverage = (emps: Employee[]) => {
+      if (emps.length === 0) {
+        return { sales: 0, management: 0, pioneering: 0, training: 0 };
+      }
+      return {
+        sales: emps.reduce((sum, e) => sum + e.salesPower, 0) / emps.length,
+        management: emps.reduce((sum, e) => sum + e.managementPower, 0) / emps.length,
+        pioneering: emps.reduce((sum, e) => sum + e.pioneeringPower, 0) / emps.length,
+        training: emps.reduce((sum, e) => sum + e.trainingPower, 0) / emps.length,
+      };
+    };
+
+    const getHighestSkillName = (avg: { sales: number; management: number; pioneering: number; training: number }) => {
+      const skills = [
+        { name: '営業スキル', value: avg.sales },
+        { name: '管理スキル', value: avg.management },
+        { name: '開拓スキル', value: avg.pioneering },
+        { name: '育成スキル', value: avg.training },
+      ];
+      skills.sort((a, b) => b.value - a.value);
+      return skills[0];
+    };
+
+    const getSecondHighestSkillName = (avg: { sales: number; management: number; pioneering: number; training: number }) => {
+      const skills = [
+        { name: '営業スキル', value: avg.sales },
+        { name: '管理スキル', value: avg.management },
+        { name: '開拓スキル', value: avg.pioneering },
+        { name: '育成スキル', value: avg.training },
+      ];
+      skills.sort((a, b) => b.value - a.value);
+      return skills[1];
+    };
+
+    const deptASkill = calculateSkillAverage(deptAEmployees);
+    const deptBSkill = calculateSkillAverage(deptBEmployees);
+    const deptCSkill = calculateSkillAverage(deptCEmployees);
+
+    const deptAHighest = getHighestSkillName(deptASkill);
+    const deptASecond = getSecondHighestSkillName(deptASkill);
+    const deptBHighest = getHighestSkillName(deptBSkill);
+    const deptBSecond = getSecondHighestSkillName(deptBSkill);
+    const deptCHighest = getHighestSkillName(deptCSkill);
+    const deptCSecond = getSecondHighestSkillName(deptCSkill);
+
+    // 全社向け説明文生成
+    let overallExplanation = '';
+    switch (objective) {
+      case 'totalSales':
+        overallExplanation = `全社の売上を最大化することを優先し、各事業部の適正な人数配置と、スキルの最適配分を実施しました。`;
+        break;
+      case 'deptAProfit':
+        overallExplanation = `A事業部の利益最大化を最優先とし、A事業部に経営スキルが高い人員を集中配置しました。同時に、B・C事業部の売上維持にも配慮しています。`;
+        break;
+      case 'deptBSales':
+        overallExplanation = `B事業部の売上を最大化することを優先し、B事業部に営業スキルが高い人員を集中配置しました。同時に、A・C事業部の売上維持にも配慮しています。`;
+        break;
+      case 'deptCSales':
+        overallExplanation = `C事業部の売上を最大化することを優先し、C事業部に営業スキルが高い人員を集中配置しました。同時に、A・B事業部の売上維持にも配慮しています。`;
+        break;
+    }
+
+    return {
+      overallExplanation,
+      deptA: {
+        explanation: `${deptAHighest.name}（平均${deptAHighest.value.toFixed(1)}）を最も重視した配置です。次点で${deptASecond.name}（平均${deptASecond.value.toFixed(1)}）が高く、バランスの取れたチーム構成になっています。`,
+        skillAverages: deptASkill,
+      },
+      deptB: {
+        explanation: `${deptBHighest.name}（平均${deptBHighest.value.toFixed(1)}）を最も重視した配置です。次点で${deptBSecond.name}（平均${deptBSecond.value.toFixed(1)}）が高く、バランスの取れたチーム構成になっています。`,
+        skillAverages: deptBSkill,
+      },
+      deptC: {
+        explanation: `${deptCHighest.name}（平均${deptCHighest.value.toFixed(1)}）を最も重視した配置です。次点で${deptCSecond.name}（平均${deptCSecond.value.toFixed(1)}）が高く、バランスの取れたチーム構成になっています。`,
+        skillAverages: deptCSkill,
+      },
+    };
   }
 
   private getScoresForObjective(
@@ -287,12 +398,11 @@ export class CalculatorService {
   ): Employee[] {
     const EPSILON = 1e-6;
 
-    // 計測用変数
+    // 計測用変数（粗い計測）
     const perfStart = performance.now();
     let iterationCount = 0;
     let totalSimulationCount = 0;
     let totalCandidateCount = 0;
-    let candidateEnumerationTime = 0;
     let simulationTime = 0;
 
     // 確定的な初期配置（乱数なし）
@@ -318,14 +428,13 @@ export class CalculatorService {
     let isImproved = true;
 
     while (isImproved) {
+      const iterationStart = performance.now();
       iterationCount++;
       isImproved = false;
       let iterationCandidateCount = 0;
 
-      const simStart = performance.now();
       const currentResult = this.calculateTotalSimulation(currentEmployees);
       totalSimulationCount++;
-      simulationTime += performance.now() - simStart;
 
       const currentScores = this.isValidPlacement(currentResult)
         ? this.getScoresForObjective(currentResult, objective)
@@ -336,7 +445,8 @@ export class CalculatorService {
       let bestAction: BestAction | null = null;
 
       // パターン①: 1人移動パターンをすべて試す
-      const enumStart1 = performance.now();
+      const candidatesForMoveSimulation: Array<{ index: number; targetDept: 'A' | 'B' | 'C' }> = [];
+
       for (let i = 0; i < currentEmployees.length; i++) {
         // ロック済み社員は移動対象外
         if (currentEmployees[i].isLocked) {
@@ -348,45 +458,50 @@ export class CalculatorService {
 
         for (const targetDept of otherDepts) {
           iterationCandidateCount++;
-          const testEmployees = currentEmployees.map(e => ({ ...e }));
-          testEmployees[i].assignedDept = targetDept;
+          candidatesForMoveSimulation.push({ index: i, targetDept });
+        }
+      }
 
-          const simStart2 = performance.now();
-          const testResult = this.calculateTotalSimulation(testEmployees);
-          totalSimulationCount++;
-          simulationTime += performance.now() - simStart2;
+      // 候補のシミュレーション評価（パターン①）
+      for (const candidate of candidatesForMoveSimulation) {
+        const originalDept = currentEmployees[candidate.index].assignedDept;
+        currentEmployees[candidate.index].assignedDept = candidate.targetDept;
 
-          if (this.isValidPlacement(testResult)) {
-            const testScores = this.getScoresForObjective(testResult, objective);
+        const testResult = this.calculateTotalSimulation(currentEmployees);
+        totalSimulationCount++;
 
-            // 最適判定: 第一条件で上回るか、または第一条件同点で第二条件が上回った場合
-            if (testScores.primaryScore > bestPrimaryScore + EPSILON) {
-              bestPrimaryScore = testScores.primaryScore;
-              bestSecondaryScore = testScores.secondaryScore;
-              bestAction = {
-                type: 'move',
-                empIndex: i,
-                newDept: targetDept,
-              };
-            } else if (
-              Math.abs(testScores.primaryScore - bestPrimaryScore) <= EPSILON &&
-              testScores.secondaryScore > bestSecondaryScore + EPSILON
-            ) {
-              bestPrimaryScore = testScores.primaryScore;
-              bestSecondaryScore = testScores.secondaryScore;
-              bestAction = {
-                type: 'move',
-                empIndex: i,
-                newDept: targetDept,
-              };
-            }
+        currentEmployees[candidate.index].assignedDept = originalDept;
+
+        if (this.isValidPlacement(testResult)) {
+          const testScores = this.getScoresForObjective(testResult, objective);
+
+          // 最適判定: 第一条件で上回るか、または第一条件同点で第二条件が上回った場合
+          if (testScores.primaryScore > bestPrimaryScore + EPSILON) {
+            bestPrimaryScore = testScores.primaryScore;
+            bestSecondaryScore = testScores.secondaryScore;
+            bestAction = {
+              type: 'move',
+              empIndex: candidate.index,
+              newDept: candidate.targetDept,
+            };
+          } else if (
+            Math.abs(testScores.primaryScore - bestPrimaryScore) <= EPSILON &&
+            testScores.secondaryScore > bestSecondaryScore + EPSILON
+          ) {
+            bestPrimaryScore = testScores.primaryScore;
+            bestSecondaryScore = testScores.secondaryScore;
+            bestAction = {
+              type: 'move',
+              empIndex: candidate.index,
+              newDept: candidate.targetDept,
+            };
           }
         }
       }
-      candidateEnumerationTime += performance.now() - enumStart1;
 
       // パターン②: 2人入れ替えパターンをすべて試す
-      const enumStart2 = performance.now();
+      const candidatesForSwapSimulation: Array<{ index1: number; index2: number }> = [];
+
       for (let i = 0; i < currentEmployees.length; i++) {
         for (let j = i + 1; j < currentEmployees.length; j++) {
           // ロック済み社員のスワップは対象外
@@ -400,46 +515,56 @@ export class CalculatorService {
           // 異なる部署の2名のみを対象
           if (deptI !== deptJ) {
             iterationCandidateCount++;
-            const testEmployees = currentEmployees.map(e => ({ ...e }));
-            const temp = testEmployees[i].assignedDept;
-            testEmployees[i].assignedDept = testEmployees[j].assignedDept;
-            testEmployees[j].assignedDept = temp;
-
-            const simStart3 = performance.now();
-            const testResult = this.calculateTotalSimulation(testEmployees);
-            totalSimulationCount++;
-            simulationTime += performance.now() - simStart3;
-
-            if (this.isValidPlacement(testResult)) {
-              const testScores = this.getScoresForObjective(testResult, objective);
-
-              // 最適判定: 第一条件で上回るか、または第一条件同点で第二条件が上回った場合
-              if (testScores.primaryScore > bestPrimaryScore + EPSILON) {
-                bestPrimaryScore = testScores.primaryScore;
-                bestSecondaryScore = testScores.secondaryScore;
-                bestAction = {
-                  type: 'swap',
-                  emp1Index: i,
-                  emp2Index: j,
-                };
-              } else if (
-                Math.abs(testScores.primaryScore - bestPrimaryScore) <= EPSILON &&
-                testScores.secondaryScore > bestSecondaryScore + EPSILON
-              ) {
-                bestPrimaryScore = testScores.primaryScore;
-                bestSecondaryScore = testScores.secondaryScore;
-                bestAction = {
-                  type: 'swap',
-                  emp1Index: i,
-                  emp2Index: j,
-                };
-              }
-            }
+            candidatesForSwapSimulation.push({ index1: i, index2: j });
           }
         }
       }
-      candidateEnumerationTime += performance.now() - enumStart2;
+
+      // 候補のシミュレーション評価（パターン②）
+      for (const candidate of candidatesForSwapSimulation) {
+        const dept1 = currentEmployees[candidate.index1].assignedDept;
+        const dept2 = currentEmployees[candidate.index2].assignedDept;
+
+        currentEmployees[candidate.index1].assignedDept = dept2;
+        currentEmployees[candidate.index2].assignedDept = dept1;
+
+        const testResult = this.calculateTotalSimulation(currentEmployees);
+        totalSimulationCount++;
+
+        currentEmployees[candidate.index1].assignedDept = dept1;
+        currentEmployees[candidate.index2].assignedDept = dept2;
+
+        if (this.isValidPlacement(testResult)) {
+          const testScores = this.getScoresForObjective(testResult, objective);
+
+          // 最適判定: 第一条件で上回るか、または第一条件同点で第二条件が上回った場合
+          if (testScores.primaryScore > bestPrimaryScore + EPSILON) {
+            bestPrimaryScore = testScores.primaryScore;
+            bestSecondaryScore = testScores.secondaryScore;
+            bestAction = {
+              type: 'swap',
+              emp1Index: candidate.index1,
+              emp2Index: candidate.index2,
+            };
+          } else if (
+            Math.abs(testScores.primaryScore - bestPrimaryScore) <= EPSILON &&
+            testScores.secondaryScore > bestSecondaryScore + EPSILON
+          ) {
+            bestPrimaryScore = testScores.primaryScore;
+            bestSecondaryScore = testScores.secondaryScore;
+            bestAction = {
+              type: 'swap',
+              emp1Index: candidate.index1,
+              emp2Index: candidate.index2,
+            };
+          }
+        }
+      }
       totalCandidateCount += iterationCandidateCount;
+
+      // 反復単位の計測（粗い計測）
+      const iterationEnd = performance.now();
+      simulationTime += iterationEnd - iterationStart;
 
       // 状態を更新
       if (bestAction) {
@@ -454,76 +579,19 @@ export class CalculatorService {
       }
     }
 
-    // 計測結果をログ出力
+    // 計測結果をログ出力（粗い計測）
     const perfEnd = performance.now();
     const totalTime = perfEnd - perfStart;
     const avgTimePerSimulation = simulationTime / totalSimulationCount;
     const avgCandidatesPerIteration = totalCandidateCount / iterationCount;
-    const simulationPercentage = (simulationTime / totalTime) * 100;
-    const enumerationPercentage = (candidateEnumerationTime / totalTime) * 100;
 
-    console.log('[最適化パフォーマンス計測結果]', {
+    console.log('[最適化パフォーマンス計測結果（粗い計測）]', {
       '全体実行時間(ms)': totalTime.toFixed(2),
       '反復回数': iterationCount,
       '総候補数': totalCandidateCount,
       '1反復あたりの平均候補数': avgCandidatesPerIteration.toFixed(2),
       '総シミュレーション実行回数': totalSimulationCount,
-      '候補評価1回あたりの平均時間(ms)': avgTimePerSimulation.toFixed(4),
-      '候補列挙の合計時間(ms)': candidateEnumerationTime.toFixed(2),
-      'シミュレーションの合計時間(ms)': simulationTime.toFixed(2),
-      '候補列挙の時間割合(%)': enumerationPercentage.toFixed(2),
-      'シミュレーションの時間割合(%)': simulationPercentage.toFixed(2),
-    });
-
-    // シミュレーション関数内の詳細計測結果を集約
-    const filterMeasures = performance.getEntriesByName('filtering', 'measure') as PerformanceMeasure[];
-    const deptAMeasures = performance.getEntriesByName('calculateDeptMetrics-A', 'measure') as PerformanceMeasure[];
-    const deptBMeasures = performance.getEntriesByName('calculateDeptMetrics-B', 'measure') as PerformanceMeasure[];
-    const deptCMeasures = performance.getEntriesByName('calculateDeptMetrics-C', 'measure') as PerformanceMeasure[];
-    const simMeasures = performance.getEntriesByName('calculateTotalSimulation', 'measure') as PerformanceMeasure[];
-
-    const calculateAverages = (measures: PerformanceMeasure[]) => {
-      if (measures.length === 0) return { avg: 0, total: 0, count: 0 };
-      const total = measures.reduce((sum, m) => sum + m.duration, 0);
-      return {
-        total: total.toFixed(2),
-        avg: (total / measures.length).toFixed(4),
-        count: measures.length,
-      };
-    };
-
-    const filterStats = calculateAverages(filterMeasures);
-    const deptAStats = calculateAverages(deptAMeasures);
-    const deptBStats = calculateAverages(deptBMeasures);
-    const deptCStats = calculateAverages(deptCMeasures);
-    const simStats = calculateAverages(simMeasures);
-
-    console.log('[シミュレーション関数の詳細計測]', {
-      'calculateTotalSimulation': {
-        '平均実行時間(ms)': simStats.avg,
-        '合計時間(ms)': simStats.total,
-        '実行回数': simStats.count,
-      },
-      'filtering（フィルタリング）': {
-        '平均実行時間(ms)': filterStats.avg,
-        '合計時間(ms)': filterStats.total,
-        '実行回数': filterStats.count,
-      },
-      'calculateDeptMetrics-A': {
-        '平均実行時間(ms)': deptAStats.avg,
-        '合計時間(ms)': deptAStats.total,
-        '実行回数': deptAStats.count,
-      },
-      'calculateDeptMetrics-B': {
-        '平均実行時間(ms)': deptBStats.avg,
-        '合計時間(ms)': deptBStats.total,
-        '実行回数': deptBStats.count,
-      },
-      'calculateDeptMetrics-C': {
-        '平均実行時間(ms)': deptCStats.avg,
-        '合計時間(ms)': deptCStats.total,
-        '実行回数': deptCStats.count,
-      },
+      '1反復あたりの平均時間(ms)': (simulationTime / iterationCount).toFixed(4),
     });
 
     const finalResult = this.calculateTotalSimulation(currentEmployees);
@@ -533,6 +601,10 @@ export class CalculatorService {
       'C人数': finalResult.deptC.headcount,
       '全社売上': finalResult.totalSales.toFixed(2),
     });
+
+    // パフォーマンスAPI用のメモリ解放
+    performance.clearMarks();
+    performance.clearMeasures();
 
     return currentEmployees;
   }
