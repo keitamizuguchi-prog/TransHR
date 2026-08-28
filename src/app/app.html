@@ -792,12 +792,9 @@
           <button
             type="button"
             (click)="toggleObjectiveDataSourceWithCheck('additional')"
-            [disabled]="!additionalFileLoaded()"
             [style.background-color]="objectiveChartDataSource() === 'additional' ? '#2196f3' : '#f0f0f0'"
             [style.color]="objectiveChartDataSource() === 'additional' ? 'white' : '#333'"
-            [style.opacity]="!additionalFileLoaded() ? '0.5' : '1'"
-            [style.cursor]="!additionalFileLoaded() ? 'not-allowed' : 'pointer'"
-            style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; font-weight: 600; transition: all 0.2s;"
+            style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;"
           >
             採用予定を含む
           </button>
