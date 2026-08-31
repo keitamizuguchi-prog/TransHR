@@ -59,8 +59,8 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 64px;
-      padding: 0 24px;
+      height: 48px;
+      padding: 0 20px;
       gap: 20px;
     }
     .header-left {
@@ -82,12 +82,12 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       gap: 0;
     }
     .header-tab {
-      padding: 12px 20px;
+      padding: 8px 16px;
       border: none;
       background: none;
       cursor: pointer;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
       color: #666;
       border-bottom: 3px solid transparent;
       transition: all 0.2s ease;
@@ -118,10 +118,10 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       flex-shrink: 0;
     }
     .header-select {
-      padding: 8px 12px;
+      padding: 5px 10px;
       border: 1px solid #ddd;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       background-color: white;
       cursor: pointer;
       transition: border-color 0.2s ease;
@@ -135,12 +135,12 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
     }
     .header-button {
-      padding: 8px 12px;
+      padding: 5px 10px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
       transition: all 0.2s ease;
       white-space: nowrap;
     }
@@ -159,12 +159,12 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       background-color: #e0e0e0;
     }
     .file-label {
-      padding: 8px 12px;
+      padding: 3px 8px;
       background-color: #f0f0f0;
-      border-radius: 6px;
+      border-radius: 5px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 11px;
       transition: all 0.2s ease;
       white-space: nowrap;
     }
@@ -201,50 +201,61 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     .header-button-logout:hover {
       background-color: #c82333;
     }
-    /* ヘッダー下部 */
+    /* ヘッダー下部（完全1行ツールバー） */
     .header-bottom {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 12px 24px;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      gap: 8px;
+      padding: 4px 16px;
       background-color: #fafbfc;
       border-top: 1px solid #e2e8f0;
-    }
-    .header-bottom-left {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
     }
     .file-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 4px;
     }
     .header-bottom-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      margin-left: auto;
     }
     .file-label-disabled {
       opacity: 0.5;
       cursor: not-allowed;
       pointer-events: none;
     }
-    .header-button-danger {
-      background-color: #dc3545;
-      color: white;
+    /* ファイル取り消しボタン（アイコンのみ） */
+    .file-clear-btn {
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #aaa;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 11px;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
     }
-    .header-button-danger:hover {
-      background-color: #c82333;
+    .file-clear-btn:hover {
+      background: #fdecea;
+      color: #dc3545;
     }
     /* メイン画面ラッパー */
     .main-wrapper {
       display: flex;
       flex: 1;
       overflow: hidden;
-      gap: 16px;
-      padding: 16px;
+      gap: 8px;
+      padding: 8px;
     }
     /* 左側：事業部エリア */
     .left-section {
@@ -252,27 +263,27 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 8px;
     }
     /* サマリーバーラッパー */
     .summary-bar-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 4px;
+      margin-bottom: 4px;
       position: relative;
     }
     .summary-badge-group {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       justify-content: flex-end;
-      min-height: 24px;
+      min-height: 0;
     }
     .status-badge {
       display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 10px;
       font-weight: 600;
       white-space: nowrap;
     }
@@ -284,54 +295,64 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       background-color: #dc3545;
       color: white;
     }
-    /* サマリーバー */
+    /* サマリーバー（1行コンパクト） */
     .summary-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      gap: 8px;
       background: white;
-      padding: 20px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       border: 1px solid #f0f4f8;
     }
     .summary-item {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 12px;
-      border-radius: 6px;
+      align-items: baseline;
+      gap: 6px;
+      padding: 2px 6px;
+      border-radius: 4px;
       background: #fafbfc;
     }
     .summary-item-primary {
       background: #f0fdf4;
     }
     .summary-label {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 600;
       color: #999;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
     }
     .summary-value {
-      font-size: 26px;
+      font-size: 16px;
       font-weight: 800;
       color: #1a1a1a;
-      line-height: 1.2;
+      line-height: 1.1;
     }
     .summary-value-primary {
-      font-size: 32px;
+      font-size: 18px;
       font-weight: 800;
       color: #10b981;
     }
-    /* 事業部カードコンテナ */
+    /* 事業部カードコンテナ（残り高さいっぱいに拡張） */
     .dept-cards-container {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 8px;
+      width: 100%;
+      flex-grow: 1;
+      min-height: 0;
     }
-    /* 事業部カード（横分割） */
+    /* 事業部カード（横分割・縦いっぱいに拡張） */
     .dept-card-large {
+      flex: 1 1 0;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
       background: white;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -339,53 +360,101 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       overflow: hidden;
     }
     .dept-header {
-      padding: 12px 16px;
+      padding: 4px 8px;
       background-color: #f8fafc;
       border-bottom: 1px solid #e8e8e8;
+      flex-shrink: 0;
     }
     .dept-name {
       margin: 0;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       color: #1a1a1a;
     }
     .dept-content {
       display: flex;
-      min-height: 200px;
+      flex: 1;
+      min-height: 0;
     }
-    /* 左側：統計情報パネル（40%・2列グリッド） */
+    /* 統計情報パネル（幅いっぱい・情報密度重視で上詰め） */
     .dept-stats-panel {
-      flex: 0 0 40%;
-      padding: 14px;
-      border-right: 1px solid #f0f4f8;
+      width: 100%;
+      padding: 6px 8px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px 16px;
+      gap: 4px 8px;
       align-content: start;
       background-color: #fafbfc;
+      overflow-y: auto;
     }
     .stat-item {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 0;
       font-size: 12px;
+      min-width: 0;
     }
     .stat-label {
       color: #666;
       font-weight: 600;
       flex-shrink: 0;
-      font-size: 11px;
+      font-size: 10px;
+      white-space: nowrap;
     }
     .stat-value {
       color: #1a1a1a;
       font-weight: 600;
       text-align: left;
-      font-size: 13px;
+      font-size: 12px;
     }
     .stat-divider {
       grid-column: 1 / -1;
       border-top: 1px solid #e0e0e0;
-      margin-top: 2px;
+      margin: 0;
+    }
+    /* 補正係数バッジ（条件付きスタイル・アラートバッジ風） */
+    .stat-badge-item {
+      grid-column: 1 / -1;
+      border-radius: 6px;
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .stat-badge-item .stat-label,
+    .stat-badge-item .stat-value {
+      color: inherit;
+    }
+    .stat-badge-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .stat-badge-note {
+      font-size: 10px;
+      font-weight: 700;
+      color: inherit;
+      white-space: nowrap;
+    }
+    /* 財務指標（横一列） */
+    .stat-finance-row {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 4px;
+    }
+    .stat-finance-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-width: 0;
+    }
+    .stat-finance-item .stat-label {
+      font-size: 9px;
+    }
+    .stat-finance-item .stat-value {
+      font-size: 11px;
     }
     /* 右側：従業員グリッド（残り幅いっぱい） */
     .employees-grid {
@@ -749,7 +818,7 @@ export class App implements OnInit, OnDestroy {
   protected minTotalSales = MIN_TOTAL_SALES;
   protected selectedObjective: OptimizationObjective = 'totalSales';
   protected optimizationReason: string = '';
-  protected currentScreen = signal<'dashboard' | 'objective' | 'matrix'>('dashboard');
+  protected currentScreen = signal<'dashboard' | 'objective' | 'matrix' | 'manual'>('dashboard');
   protected tempPanelOpen = signal<boolean>(true);
 
   // 従業員一括配置管理
@@ -757,6 +826,21 @@ export class App implements OnInit, OnDestroy {
   employeeSearchResults: Employee[] = [];
   selectedEmployeesForBulkChange: Employee[] = [];
   bulkChangeDept: string = '';
+
+  // 手動調整タブ用検索機能
+  manualSearchQuery = signal<string>('');
+  selectedForBulkMove = signal<Set<string>>(new Set());
+  manualSearchPanelOpen = signal<boolean>(false);
+  manualSearchResults = computed(() => {
+    const query = this.manualSearchQuery().toLowerCase().trim();
+    if (!query) {
+      return this.employees();
+    }
+    return this.employees().filter(emp =>
+      emp.id.toLowerCase().includes(query) ||
+      emp.name.toLowerCase().includes(query)
+    );
+  });
 
   // グラフ用データ
   protected matrixChartLabels = signal<string[]>([]);
@@ -1018,6 +1102,90 @@ export class App implements OnInit, OnDestroy {
     if (this.matrixComparisonResults().length === 0) {
       this.runMatrixComparison();
     }
+  }
+
+  goToManualAdjustment(): void {
+    this.currentScreen.set('manual');
+  }
+
+  toggleManualSearchPanel(): void {
+    this.manualSearchPanelOpen.update(v => !v);
+    console.log('toggleManualSearchPanel called, new state:', this.manualSearchPanelOpen());
+  }
+
+  toggleSelectAll(checked: boolean): void {
+    if (checked) {
+      const allIds = new Set(this.manualSearchResults().map(e => e.id));
+      this.selectedForBulkMove.set(allIds);
+    } else {
+      this.selectedForBulkMove.set(new Set());
+    }
+  }
+
+  toggleManualSelectEmployee(empId: string): void {
+    this.selectedForBulkMove.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(empId)) {
+        newSet.delete(empId);
+      } else {
+        newSet.add(empId);
+      }
+      return newSet;
+    });
+  }
+
+  isManualEmployeeSelected(empId: string): boolean {
+    return this.selectedForBulkMove().has(empId);
+  }
+
+  bulkMoveToManualDept(deptId: DepartmentId): void {
+    const selectedIds = this.selectedForBulkMove();
+    if (selectedIds.size === 0) return;
+
+    this.employees.update(emps =>
+      emps.map(emp =>
+        selectedIds.has(emp.id) ? { ...emp, assignedDept: deptId } : emp
+      )
+    );
+
+    this.selectedForBulkMove.set(new Set());
+    this.manualSearchQuery.set('');
+    this.manualSearchPanelOpen.set(false);
+  }
+
+  bulkLockManualEmployees(): void {
+    const selectedIds = this.selectedForBulkMove();
+    if (selectedIds.size === 0) return;
+
+    this.employees.update(emps =>
+      emps.map(emp =>
+        selectedIds.has(emp.id) ? { ...emp, isLocked: true } : emp
+      )
+    );
+
+    this.selectedForBulkMove.set(new Set());
+    this.manualSearchQuery.set('');
+    this.manualSearchPanelOpen.set(false);
+  }
+
+  bulkUnlockManualEmployees(): void {
+    const selectedIds = this.selectedForBulkMove();
+    if (selectedIds.size === 0) return;
+
+    this.employees.update(emps =>
+      emps.map(emp =>
+        selectedIds.has(emp.id) ? { ...emp, isLocked: false } : emp
+      )
+    );
+
+    this.selectedForBulkMove.set(new Set());
+    this.manualSearchQuery.set('');
+    this.manualSearchPanelOpen.set(false);
+  }
+
+  clearManualSearch(): void {
+    this.manualSearchQuery.set('');
+    this.selectedForBulkMove.set(new Set());
   }
 
   private setupActivityListener(): void {
@@ -1565,6 +1733,16 @@ export class App implements OnInit, OnDestroy {
     if (coefficient >= 0.9) return '#e8f5e9';
     if (coefficient >= 0.7) return '#fff3cd';
     return '#f8d7da';
+  }
+
+  getPenaltyBadge(coefficient: number | undefined): { bg: string; text: string; label: string } {
+    if (coefficient === undefined || coefficient === null) {
+      return { bg: '#f0f0f0', text: '#666', label: '‐' };
+    }
+    if (coefficient >= 1.0) {
+      return { bg: '#e6f4ea', text: '#1e7e34', label: 'ペナルティなし' };
+    }
+    return { bg: '#fce8e6', text: '#c0392b', label: 'ペナルティあり' };
   }
 
   getPenaltyText(totalCoeff: number, fulfillmentRate: number | undefined): string {
