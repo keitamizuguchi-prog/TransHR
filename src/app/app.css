@@ -314,22 +314,22 @@
   overflow: auto;
 }
 
-/* ファイル選択ボタンの特大化 */
+/* ファイル選択ボタンの大型化 */
 .file-label {
-  padding: 18px 36px;
-  font-size: 19px;
+  padding: 14px 28px;
+  font-size: 17px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   background: white;
-  border: 3px solid #2196f3;
-  border-radius: 10px;
+  border: 2px solid #2196f3;
+  border-radius: 8px;
   font-weight: 800;
   color: #1a1a1a;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
-  min-height: 56px;
+  box-shadow: 0 3px 10px rgba(33, 150, 243, 0.18);
+  min-height: 48px;
   align-items: center;
 }
 
@@ -347,54 +347,54 @@
   border-color: #bbb;
 }
 
-/* 全社サマリー（重要指標）の超大型化 */
+/* 全社サマリー（重要指標）の大型化 */
 .summary-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  padding: 40px 28px;
+  gap: 16px;
+  padding: 28px 20px;
   background: white;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  margin: 16px 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  margin: 12px 0;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
 }
 
 .summary-item {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 32px;
+  gap: 12px;
+  padding: 24px;
   background: #fafbfc;
-  border-radius: 12px;
-  border-left: 8px solid #2196f3;
-  min-height: 180px;
+  border-radius: 10px;
+  border-left: 6px solid #2196f3;
+  min-height: 140px;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .summary-label {
-  font-size: 17px;
+  font-size: 15px;
   color: #666;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
 }
 
 .summary-value {
-  font-size: 48px;
+  font-size: 42px;
   font-weight: 900;
   color: #1a1a1a;
   line-height: 1.1;
   word-break: break-word;
 }
 
-/* 事業部カード内の統計情報の超大型化 */
+/* 事業部カード内の統計情報の大型化 */
 .dept-stats-panel {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 24px;
+  gap: 16px;
+  padding: 18px;
   min-height: 100%;
   justify-content: space-between;
 }
@@ -402,20 +402,20 @@
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 0;
+  gap: 8px;
+  padding: 8px 0;
 }
 
 .stat-label {
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #1a1a1a;
   line-height: 1.3;
@@ -423,78 +423,78 @@
 
 .stat-badge-item {
   background: #e3f2fd;
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 6px solid #1976d2;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #1976d2;
 }
 
 .stat-badge-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .stat-badge-note {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .stat-divider {
-  height: 2px;
+  height: 1px;
   background: #e2e8f0;
-  margin: 12px 0;
+  margin: 8px 0;
 }
 
 .stat-finance-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 10px;
 }
 
 .stat-finance-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  gap: 6px;
+  padding: 10px;
   background: #f0f4f8;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 /* ファイル関連スタイル */
 .file-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 0;
-  line-height: 1.5;
+  gap: 10px;
+  padding: 8px 0;
+  line-height: 1.4;
 }
 
 .file-name {
-  font-size: 15px;
+  font-size: 13px;
   color: #1a1a1a;
   font-weight: 600;
   flex: 1;
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: #f0f8ff;
-  border-radius: 6px;
-  border-left: 4px solid #2196f3;
-  min-height: 44px;
+  border-radius: 5px;
+  border-left: 3px solid #2196f3;
+  min-height: 38px;
   display: flex;
   align-items: center;
 }
 
 .file-clear-btn {
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: #fff3cd;
   border: 2px solid #ffc107;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   color: #856404;
   font-weight: 700;
   transition: all 0.2s ease;
-  min-height: 44px;
+  min-height: 38px;
   display: flex;
   align-items: center;
 }
