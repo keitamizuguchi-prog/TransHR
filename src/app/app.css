@@ -1,0 +1,495 @@
+/* 手動調整タブラッパー */
+.manual-adjustment-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 検索パネルトグル */
+.manual-search-toggle {
+  flex-shrink: 0;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 8px 16px;
+}
+
+.search-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: #1a1a1a;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.search-toggle-btn:hover {
+  background: #f0f4f8;
+  border-color: #2196f3;
+}
+
+.toggle-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+  color: #666;
+}
+
+.toggle-label {
+  flex: 1;
+  text-align: left;
+}
+
+.selection-badge {
+  background: #2196f3;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* 検索パネル */
+.manual-search-panel {
+  flex-shrink: 0;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  animation: slideDown 0.2s ease;
+}
+
+/* カンバンボード */
+.manual-kanban-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 16px;
+  overflow-x: auto;
+  width: 100%;
+  flex: 1;
+  padding: 12px;
+  min-height: 0;
+}
+
+/* 各事業部カラム */
+.dept-card-manual {
+  flex: 1 0 auto;
+  min-width: 300px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f4f8;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.search-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.search-clear-btn {
+  padding: 6px 10px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+}
+
+.search-clear-btn:hover {
+  background: #e0e0e0;
+}
+
+.search-results-panel {
+  background: #f8fafc;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.search-results-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  background: white;
+  flex-shrink: 0;
+}
+
+.search-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.search-select-all input {
+  cursor: pointer;
+}
+
+.result-count {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.search-results-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.search-result-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8e8e8;
+  background: white;
+}
+
+.search-result-item:hover {
+  background: #f0f6ff;
+}
+
+.result-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.result-checkbox input {
+  cursor: pointer;
+}
+
+.emp-info {
+  flex: 1;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.emp-current-dept {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.search-actions {
+  padding: 12px;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  align-items: center;
+}
+
+.bulk-action-select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  background: white;
+}
+
+.bulk-action-btn {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  background: white;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bulk-action-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.lock-btn {
+  color: #d97706;
+  border-color: #d97706;
+}
+
+.lock-btn:hover {
+  background: #fef3c7;
+}
+
+.unlock-btn {
+  color: #059669;
+  border-color: #059669;
+}
+
+.unlock-btn:hover {
+  background: #ecfdf5;
+}
+
+.action-info {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ダッシュボード事業部カード - 横並び */
+.dept-cards-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  padding: 0;
+}
+
+.dept-card-large {
+  flex: 1 1 0;
+  min-width: 300px;
+  overflow: auto;
+}
+
+/* ファイル選択ボタンの大型化 */
+.file-label {
+  padding: 14px 28px;
+  font-size: 17px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: white;
+  border: 2px solid #2196f3;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #1a1a1a;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.15);
+}
+
+.file-label:hover {
+  background: #f0f8ff;
+  border-color: #1976d2;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
+  transform: translateY(-2px);
+}
+
+.file-label-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f9f9f9;
+  border-color: #ccc;
+}
+
+/* 全社サマリー（重要指標）の特大化 */
+.summary-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 32px 24px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin: 12px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  background: #fafbfc;
+  border-radius: 10px;
+  border-left: 6px solid #2196f3;
+  min-height: 140px;
+  justify-content: center;
+}
+
+.summary-label {
+  font-size: 15px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-value {
+  font-size: 38px;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+/* 事業部カード内の統計情報を拡大 */
+.dept-stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100%;
+  justify-content: space-between;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.stat-badge-item {
+  background: #e3f2fd;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 4px solid #1976d2;
+}
+
+.stat-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-badge-note {
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stat-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 8px 0;
+}
+
+.stat-finance-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat-finance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: #f0f4f8;
+  border-radius: 6px;
+}
+
+/* ファイル関連スタイル */
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.file-name {
+  font-size: 13px;
+  color: #1a1a1a;
+  font-weight: 500;
+  flex: 1;
+  padding: 8px 12px;
+  background: #f0f8ff;
+  border-radius: 4px;
+  border-left: 3px solid #2196f3;
+}
+
+.file-clear-btn {
+  padding: 6px 10px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #856404;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.file-clear-btn:hover {
+  background: #ffe69c;
+  border-color: #ffc107;
+}
