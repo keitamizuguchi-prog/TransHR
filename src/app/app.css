@@ -9,12 +9,59 @@
   overflow: hidden;
 }
 
+/* 上部サマリー情報（Sticky固定） */
+.manual-header-info {
+  flex-shrink: 0;
+  background: white;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 10px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.manual-info-left {
+  flex-shrink: 0;
+}
+
+.manual-objective-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+.manual-info-right {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.manual-info-item {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border-left: 4px solid #2196f3;
+  white-space: nowrap;
+}
+
 /* 検索パネルトグル */
 .manual-search-toggle {
   flex-shrink: 0;
   background: white;
   border-bottom: 1px solid #e2e8f0;
   padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 99;
 }
 
 .search-toggle-btn {
@@ -68,12 +115,12 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 400px;
+  max-height: 600px;
   overflow-y: auto;
   animation: slideDown 0.2s ease;
 }
 
-/* カンバンボード */
+/* カンバンボード - 各カラムの高さが均等に伸びる */
 .manual-kanban-container {
   display: flex;
   flex-direction: row;
@@ -84,19 +131,208 @@
   flex: 1;
   padding: 12px;
   min-height: 0;
+  align-items: stretch;
 }
 
-/* 各事業部カラム */
+/* 各事業部カラム - 堅牢なFlexbox構造 */
 .dept-card-manual {
   flex: 1 0 auto;
   min-width: 300px;
   max-width: 400px;
   display: flex;
   flex-direction: column;
+  height: 100%;
   background: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #f0f4f8;
+  position: relative;
+}
+
+/* 事業部ヘッダー - スクロール外の固定ブロック */
+.manual-dept-header {
+  flex-shrink: 0;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  z-index: 1;
+}
+
+.manual-dept-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.manual-dept-stats {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  flex-shrink: 0;
+}
+
+/* 事業部ボディ - 独立スクロール領域 */
+.manual-dept-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px;
+  min-height: 0;
+}
+
+/* 最初のカードに上部余白を確保 */
+.manual-dept-body > .employee-mini-card:first-child {
+  margin-top: 0;
+}
+
+/* 社員カード - 3段構成レイアウト（Flexbox） */
+.employee-mini-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid #f0f4f8;
+  background: white;
+  height: auto;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.employee-mini-card:hover {
+  background: #f8fafc;
+}
+
+.employee-mini-card.locked {
+  background: #fef3e0;
+  opacity: 0.9;
+}
+
+.employee-mini-card.candidate {
+  background: #ecfdf5;
+}
+
+/* 1段目：社員名 */
+.emp-id {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-align: left;
+}
+
+/* 2段目：スキル情報 */
+.emp-abilities {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 600;
+  align-items: center;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.emp-abilities > div {
+  background: #f0f4f8;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+/* 3段目：セレクト */
+.emp-select {
+  font-size: 11px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.emp-select:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.emp-select:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 4段目：ロック機能 */
+.emp-lock-btn {
+  background: #f0f4f8;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 32px;
+}
+
+.emp-lock-btn:hover {
+  background: #e0e8f0;
+  border-color: #bbb;
+}
+
+.emp-lock-btn:active {
+  transform: scale(0.98);
+}
+
+/* 採用予定バッジ */
+.candidate-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: #059669;
+  color: white;
+  font-size: 8px;
+  padding: 3px 5px;
+  border-radius: 3px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  z-index: 10;
+}
+
+/* 一時置き場バッジ */
+.temp-badge {
+  background: #9ca3af;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 @keyframes slideDown {
@@ -142,6 +378,86 @@
 
 .search-clear-btn:hover {
   background: #e0e0e0;
+}
+
+/* 高度なフィルター */
+.advanced-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #2196f3;
+}
+
+.filter-number-input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.filter-number-input:focus {
+  outline: none;
+  border-color: #2196f3;
+}
+
+.filter-number-input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.filter-unit-label {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.filter-clear-btn {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #dc3545;
+  border-radius: 4px;
+  color: #dc3545;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-clear-btn:hover {
+  background: #fff5f7;
 }
 
 .search-results-panel {
@@ -192,25 +508,23 @@
 }
 
 .search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid #e8e8e8;
   background: white;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .search-result-item:hover {
   background: #f0f6ff;
 }
 
-.result-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.search-result-item input {
   cursor: pointer;
-  font-size: 12px;
-}
-
-.result-checkbox input {
-  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .emp-info {
@@ -246,6 +560,12 @@
   align-items: center;
 }
 
+.move-action-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .bulk-action-select {
   padding: 6px 10px;
   border: 1px solid #ddd;
@@ -253,6 +573,34 @@
   font-size: 12px;
   cursor: pointer;
   background: white;
+}
+
+.bulk-action-select:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.move-btn {
+  padding: 6px 12px !important;
+  background: #2196f3 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+}
+
+.move-btn:hover:not(:disabled) {
+  background: #1976d2 !important;
+}
+
+.move-btn:disabled {
+  background: #ccc !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
 }
 
 .bulk-action-btn {
@@ -267,9 +615,17 @@
   white-space: nowrap;
 }
 
-.bulk-action-btn:hover {
+.bulk-action-btn:hover:not(:disabled) {
   background: #f5f5f5;
   border-color: #999;
+}
+
+.bulk-action-btn:disabled {
+  background: #f5f5f5;
+  color: #aaa;
+  border-color: #ddd;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .lock-btn {
@@ -288,6 +644,15 @@
 
 .unlock-btn:hover {
   background: #ecfdf5;
+}
+
+.clear-btn {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.clear-btn:hover {
+  background: #fff5f7;
 }
 
 .action-info {
@@ -311,7 +676,8 @@
 .dept-card-large {
   flex: 1 1 0;
   min-width: 300px;
-  overflow: auto;
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
 
 /* ファイル選択ボタンの大型化 */
@@ -352,29 +718,28 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  padding: 28px 20px;
+  padding: 8px 20px;
   background: white;
   border: 2px solid #e2e8f0;
   border-radius: 10px;
-  margin: 12px 0;
+  margin: 6px 0;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
 }
 
 .summary-item {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 24px;
+  gap: 4px;
+  padding: 6px 16px;
   background: #fafbfc;
   border-radius: 10px;
   border-left: 6px solid #2196f3;
-  min-height: 140px;
   justify-content: center;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .summary-label {
-  font-size: 15px;
+  font-size: 18px;
   color: #666;
   font-weight: 700;
   text-transform: uppercase;
@@ -382,19 +747,28 @@
 }
 
 .summary-value {
-  font-size: 42px;
-  font-weight: 900;
+  font-size: 32px;
+  font-weight: 800;
   color: #1a1a1a;
   line-height: 1.1;
   word-break: break-word;
+}
+
+.dept-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  overflow-y: hidden;
+  flex: 1;
 }
 
 /* 事業部カード内の統計情報の大型化 */
 .dept-stats-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 18px;
+  gap: 8px;
+  padding: 10px;
   min-height: 100%;
   justify-content: space-between;
 }
@@ -402,8 +776,8 @@
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px 0;
+  gap: 2px;
+  padding: 3px 0;
 }
 
 .stat-label {
@@ -423,7 +797,7 @@
 
 .stat-badge-item {
   background: #e3f2fd;
-  padding: 12px;
+  padding: 6px 8px;
   border-radius: 6px;
   border-left: 4px solid #1976d2;
 }
@@ -443,20 +817,20 @@
 .stat-divider {
   height: 1px;
   background: #e2e8f0;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .stat-finance-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 6px;
 }
 
 .stat-finance-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px;
+  gap: 2px;
+  padding: 10px 8px;
   background: #f0f4f8;
   border-radius: 6px;
 }
@@ -468,6 +842,55 @@
   gap: 10px;
   padding: 8px 0;
   line-height: 1.4;
+}
+
+/* Toast通知 */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1a1a1a;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 2000;
+  animation: toastSlideIn 0.3s ease, toastFadeOut 0.3s ease 2.7s;
+  max-width: 400px;
+}
+
+.toast-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  line-height: 1.4;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .file-name {
@@ -502,4 +925,15 @@
 .file-clear-btn:hover {
   background: #ffe69c;
   border-color: #f59e0b;
+}
+
+/* 最適化の方針パネル（強調） */
+.optimization-policy-panel {
+  background-color: #f0f8ff;
+  border: 2px solid #1976d2;
+  border-radius: 8px;
+  padding: 3px 8px;
+  margin: 2px 0;
+  color: #1a1a1a;
+  flex-shrink: 0;
 }

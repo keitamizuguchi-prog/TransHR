@@ -301,7 +301,7 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       background: white;
-      padding: 8px 12px;
+      padding: 2px 12px;
       border-radius: 6px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       border: 1px solid #f0f4f8;
@@ -309,8 +309,8 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     .summary-item {
       display: flex;
       align-items: baseline;
-      gap: 6px;
-      padding: 2px 6px;
+      gap: 4px;
+      padding: 0 6px;
       border-radius: 4px;
       background: #fafbfc;
     }
@@ -326,7 +326,7 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       white-space: nowrap;
     }
     .summary-value {
-      font-size: 16px;
+      font-size: 32px;
       font-weight: 800;
       color: #1a1a1a;
       line-height: 1.1;
@@ -376,36 +376,36 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       flex: 1;
       min-height: 0;
     }
-    /* 統計情報パネル（幅いっぱい・情報密度重視で上詰め） */
+    /* 統計情報パネル（幅いっぱい・上下に均等配置） */
     .dept-stats-panel {
       width: 100%;
-      padding: 6px 8px;
+      padding: 2px 8px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 4px 8px;
-      align-content: start;
+      align-content: space-between;
       background-color: #fafbfc;
-      overflow-y: auto;
+      overflow-y: hidden;
     }
     .stat-item {
       display: flex;
       flex-direction: column;
       gap: 0;
-      font-size: 12px;
+      font-size: 14px;
       min-width: 0;
     }
     .stat-label {
       color: #666;
       font-weight: 600;
       flex-shrink: 0;
-      font-size: 10px;
+      font-size: 13px;
       white-space: nowrap;
     }
     .stat-value {
       color: #1a1a1a;
       font-weight: 600;
       text-align: left;
-      font-size: 12px;
+      font-size: 14px;
     }
     .stat-divider {
       grid-column: 1 / -1;
@@ -416,7 +416,7 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     .stat-badge-item {
       grid-column: 1 / -1;
       border-radius: 6px;
-      padding: 4px 6px;
+      padding: 2px 6px;
       display: flex;
       flex-direction: column;
       gap: 1px;
@@ -447,14 +447,15 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 0;
+      gap: 3px;
       min-width: 0;
     }
     .stat-finance-item .stat-label {
-      font-size: 9px;
+      font-size: 12px;
     }
     .stat-finance-item .stat-value {
-      font-size: 11px;
+      font-size: 22px;
+      font-weight: bold;
     }
     /* 右側：従業員グリッド（残り幅いっぱい） */
     .employees-grid {
@@ -813,6 +814,9 @@ export class App implements OnInit, OnDestroy {
   protected isProcessing = signal<boolean>(false);
   protected mainFileName = signal<string>('');
   protected additionalFileName = signal<string>('');
+  protected toastMessage = signal<string>('');
+  protected toastVisible = signal<boolean>(false);
+  private toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
   protected deptIds: DepartmentId[] = ['A', 'B', 'C', 'Temp'];
   protected deptConfig = DEPT_CONFIG;
   protected minTotalSales = MIN_TOTAL_SALES;
@@ -830,16 +834,46 @@ export class App implements OnInit, OnDestroy {
   // 手動調整タブ用検索機能
   manualSearchQuery = signal<string>('');
   selectedForBulkMove = signal<Set<string>>(new Set());
+  selectedMoveDestination = signal<string>('');
   manualSearchPanelOpen = signal<boolean>(false);
+
+  // 手動調整タブ用高度フィルター
+  manualFilterDept = signal<string>('');
+  manualFilterSkillType = signal<'' | 'sales' | 'management' | 'pioneering' | 'training'>('');
+  manualFilterSkillValue = signal<number>(0);
+
+  private static readonly SKILL_FIELD_MAP: Record<string, keyof Employee> = {
+    sales: 'salesPower',
+    management: 'managementPower',
+    pioneering: 'pioneeringPower',
+    training: 'trainingPower',
+  };
+
   manualSearchResults = computed(() => {
     const query = this.manualSearchQuery().toLowerCase().trim();
-    if (!query) {
-      return this.employees();
-    }
-    return this.employees().filter(emp =>
-      emp.id.toLowerCase().includes(query) ||
-      emp.name.toLowerCase().includes(query)
-    );
+    const filterDept = this.manualFilterDept();
+    const filterSkillType = this.manualFilterSkillType();
+    const filterSkillValue = this.manualFilterSkillValue();
+
+    return this.employees().filter(emp => {
+      if (query && !emp.id.toLowerCase().includes(query) && !emp.name.toLowerCase().includes(query)) {
+        return false;
+      }
+
+      if (filterDept && emp.assignedDept !== filterDept) {
+        return false;
+      }
+
+      if (filterSkillType) {
+        const field = App.SKILL_FIELD_MAP[filterSkillType];
+        const skillValue = emp[field] as number;
+        if (skillValue < filterSkillValue) {
+          return false;
+        }
+      }
+
+      return true;
+    });
   });
 
   // グラフ用データ
@@ -1010,13 +1044,14 @@ export class App implements OnInit, OnDestroy {
         formatter: (value, context) => {
           const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
           const percent = ((value / total) * 100).toFixed(1);
-          return `${percent}%`;
+          return [`${percent}%`, `${value.toFixed(2)}億円`];
         },
         color: '#fff',
         font: {
-          size: 12,
+          size: 11,
           weight: 'bold',
         },
+        textAlign: 'center',
       },
     },
   };
@@ -1149,6 +1184,7 @@ export class App implements OnInit, OnDestroy {
     );
 
     this.selectedForBulkMove.set(new Set());
+    this.selectedMoveDestination.set('');
     this.manualSearchQuery.set('');
     this.manualSearchPanelOpen.set(false);
   }
@@ -1186,6 +1222,16 @@ export class App implements OnInit, OnDestroy {
   clearManualSearch(): void {
     this.manualSearchQuery.set('');
     this.selectedForBulkMove.set(new Set());
+    this.selectedMoveDestination.set('');
+    this.manualFilterDept.set('');
+    this.manualFilterSkillType.set('');
+    this.manualFilterSkillValue.set(0);
+  }
+
+  clearManualFilters(): void {
+    this.manualFilterDept.set('');
+    this.manualFilterSkillType.set('');
+    this.manualFilterSkillValue.set(0);
   }
 
   private setupActivityListener(): void {
@@ -1266,6 +1312,18 @@ export class App implements OnInit, OnDestroy {
       });
   }
 
+  showToast(message: string): void {
+    if (this.toastTimeoutId !== null) {
+      clearTimeout(this.toastTimeoutId);
+    }
+    this.toastMessage.set(message);
+    this.toastVisible.set(true);
+    this.toastTimeoutId = setTimeout(() => {
+      this.toastVisible.set(false);
+      this.toastTimeoutId = null;
+    }, 3000);
+  }
+
   onFileSelected(event: any): void {
     const file = event.target?.files?.[0];
     if (!file) return;
@@ -1311,6 +1369,7 @@ export class App implements OnInit, OnDestroy {
       this.employees.set(combinedEmployees);
       this.mainEmployees.set(combinedEmployees);
       this.tempPanelOpen.set(true);
+      this.showToast(`${newEmployees.length}名の従業員データを読み込みました`);
       console.log('従業員ファイル読み込み完了。一時置き場に追加された社員数:', newEmployees.length);
     };
     reader.readAsText(file);
@@ -1394,6 +1453,7 @@ export class App implements OnInit, OnDestroy {
         this.additionalFileName.set(this.additionalFileName() + ', ' + fileName);
       }
 
+      this.showToast(`${additionalEmployees.length}名の採用予定データを読み込みました`);
       console.log('採用予定ファイル読み込み完了。一時置き場に追加された採用候補者数:', additionalEmployees.length);
     };
     reader.readAsText(file);
@@ -1407,6 +1467,15 @@ export class App implements OnInit, OnDestroy {
     const previousDept = employee.assignedDept;
 
     employee.assignedDept = newDept as DepartmentId;
+
+    // mainEmployeesにも同じ社員がいれば更新（採用予定者除外）
+    if (employee.source !== 'candidate') {
+      const mainEmp = this.mainEmployees().find(e => e.id === employee.id);
+      if (mainEmp) {
+        mainEmp.assignedDept = newDept as DepartmentId;
+      }
+    }
+
     this.updateSimulation();
 
     const result = this.simulationResult();
@@ -1415,6 +1484,13 @@ export class App implements OnInit, OnDestroy {
       if (violationMessage) {
         alert(violationMessage);
         employee.assignedDept = previousDept;
+        // mainEmployeesもロールバック
+        if (employee.source !== 'candidate') {
+          const mainEmp = this.mainEmployees().find(e => e.id === employee.id);
+          if (mainEmp) {
+            mainEmp.assignedDept = previousDept;
+          }
+        }
         this.updateSimulation();
         target.value = previousDept;
         return;
@@ -1499,6 +1575,11 @@ export class App implements OnInit, OnDestroy {
       }
 
       this.optimizationExecuted.set(true);
+
+      // mainEmployees も更新（採用予定者を除外）
+      const mainOnlyEmployees = optimizedEmployees.filter(emp => emp.source !== 'candidate');
+      this.mainEmployees.set(mainOnlyEmployees);
+
       this.updateSimulation();
 
       // 説明テキストを生成
@@ -1540,8 +1621,14 @@ export class App implements OnInit, OnDestroy {
         const objective = objectives[i];
         const objectiveLabel = objectiveLabels[i];
 
+        // 従業員の配置をリセット（一時置き場に）して最適化を実行
+        const mainEmployeesForOptimization = mainEmployeesOnly.map(emp => ({
+          ...emp,
+          assignedDept: 'Temp' as DepartmentId
+        }));
+
         const optimizedEmployees = this.calculatorService.optimizePlacement(
-          mainEmployeesOnly,
+          mainEmployeesForOptimization,
           objective
         );
 
@@ -1577,8 +1664,16 @@ export class App implements OnInit, OnDestroy {
           const objective = objectives[i];
           const objectiveLabel = objectiveLabels[i];
 
+          // 採用予定者の配置を一時置き場にリセットして最適化を実行
+          const allEmployeesForOptimization = allEmployees.map(emp => {
+            if (emp.source === 'candidate') {
+              return { ...emp, assignedDept: 'Temp' as DepartmentId };
+            }
+            return { ...emp };
+          });
+
           const optimizedEmployees = this.calculatorService.optimizePlacement(
-            allEmployees,
+            allEmployeesForOptimization,
             objective
           );
 
