@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { DepartmentId, Employee, SimulationResult, OptimizationObjective, ObjectiveComparisonResult, MatrixComparisonResult } from './models/types';
+import { DepartmentId, Employee, SimulationResult, OptimizationObjective, ObjectiveComparisonResult, MatrixComparisonResult, PlacementSnapshot } from './models/types';
 import { CalculatorService } from './services/calculator.service';
 import { AuthService } from './services/auth.service';
 import { DEPT_CONFIG, MIN_TOTAL_SALES, FULFILLMENT_RATE_THRESHOLDS } from './constants/app.constants';
@@ -24,10 +24,10 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       box-sizing: border-box;
     }
     body, html {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
       margin: 0;
       padding: 0;
-      color: #333;
+      color: var(--text-primary);
     }
     /* 全体レイアウト */
     .app-layout {
@@ -35,7 +35,7 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
-      background-color: #f8fafc;
+      background-color: var(--bg-page);
     }
     .login-container {
       display: flex;
@@ -44,16 +44,16 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       justify-content: center;
       min-height: 100vh;
       gap: 40px;
-      background-color: #f8fafc;
+      background-color: var(--bg-page);
     }
     /* ヘッダー */
     .app-header {
       display: flex;
       flex-direction: column;
-      background-color: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
+      background-color: var(--glass-bg);
+      border-bottom: 1px solid var(--glass-border);
       flex-shrink: 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
     .header-top {
       display: flex;
@@ -72,7 +72,7 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       margin: 0;
       font-size: 18px;
       font-weight: 700;
-      color: #1a1a1a;
+      color: var(--text-strong);
       white-space: nowrap;
     }
     .header-tabs {
@@ -88,16 +88,16 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
-      color: #666;
+      color: var(--text-secondary);
       border-bottom: 3px solid transparent;
       transition: all 0.2s ease;
     }
     .header-tab.active {
-      color: #2196f3;
-      border-bottom-color: #2196f3;
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
     }
     .header-tab:hover {
-      color: #1a1a1a;
+      color: var(--text-strong);
     }
     .header-controls {
       display: flex;
@@ -119,20 +119,21 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     }
     .header-select {
       padding: 5px 10px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--glass-border);
       border-radius: 6px;
       font-size: 12px;
-      background-color: white;
+      background-color: var(--glass-bg-strong);
+      color: var(--text-primary);
       cursor: pointer;
       transition: border-color 0.2s ease;
     }
     .header-select:hover {
-      border-color: #2196f3;
+      border-color: var(--accent-primary);
     }
     .header-select:focus {
       outline: none;
-      border-color: #2196f3;
-      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-primary-soft);
     }
     .header-button {
       padding: 5px 10px;
@@ -145,22 +146,22 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       white-space: nowrap;
     }
     .header-button-primary {
-      background-color: #28a745;
-      color: white;
+      background-color: var(--accent-positive);
+      color: #ffffff;
     }
     .header-button-primary:hover {
-      background-color: #218838;
+      background-color: #248a3d;
     }
     .header-button-secondary {
-      background-color: #f0f0f0;
-      color: #333;
+      background-color: var(--glass-bg-strong);
+      color: var(--text-primary);
     }
     .header-button-secondary:hover {
-      background-color: #e0e0e0;
+      background-color: var(--glass-border-strong);
     }
     .file-label {
       padding: 3px 8px;
-      background-color: #f0f0f0;
+      background-color: var(--glass-bg-strong);
       border-radius: 5px;
       cursor: pointer;
       font-weight: 600;
@@ -169,11 +170,11 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       white-space: nowrap;
     }
     .file-label:hover {
-      background-color: #e0e0e0;
+      background-color: var(--glass-border-strong);
     }
     .file-name {
       font-size: 12px;
-      color: #666;
+      color: var(--text-secondary);
       max-width: 120px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -184,22 +185,22 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
-      border-left: 1px solid #e2e8f0;
+      border-left: 1px solid var(--glass-border);
       padding-left: 12px;
     }
     .user-email {
       font-size: 12px;
-      color: #666;
+      color: var(--text-secondary);
       white-space: nowrap;
     }
     .header-button-logout {
-      background-color: #dc3545;
+      background-color: var(--accent-danger);
       color: white;
       padding: 6px 10px;
       font-size: 12px;
     }
     .header-button-logout:hover {
-      background-color: #c82333;
+      background-color: #d70015;
     }
     /* ヘッダー下部（完全1行ツールバー） */
     .header-bottom {
@@ -209,8 +210,8 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       flex-wrap: nowrap;
       gap: 8px;
       padding: 4px 16px;
-      background-color: #fafbfc;
-      border-top: 1px solid #e2e8f0;
+      background-color: var(--glass-bg-soft);
+      border-top: 1px solid var(--glass-border);
     }
     .file-row {
       display: flex;
@@ -238,7 +239,7 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       padding: 0;
       border: none;
       background: transparent;
-      color: #aaa;
+      color: var(--text-secondary);
       border-radius: 50%;
       cursor: pointer;
       font-size: 11px;
@@ -246,8 +247,8 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       transition: all 0.15s ease;
     }
     .file-clear-btn:hover {
-      background: #fdecea;
-      color: #dc3545;
+      background: var(--accent-danger-soft);
+      color: var(--accent-danger);
     }
     /* メイン画面ラッパー */
     .main-wrapper {
@@ -288,11 +289,11 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       white-space: nowrap;
     }
     .status-badge.unplaced {
-      background-color: #f0f0f0;
-      color: #666;
+      background-color: var(--glass-bg-strong);
+      color: var(--text-secondary);
     }
     .status-badge.alert {
-      background-color: #dc3545;
+      background-color: var(--accent-danger);
       color: white;
     }
     /* サマリーバー（1行コンパクト） */
@@ -300,27 +301,27 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      background: white;
+      background: var(--glass-bg);
       padding: 2px 12px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #f0f4f8;
+      border-radius: var(--radius-card);
+      box-shadow: var(--glass-shadow);
+      border: 1px solid var(--glass-border);
     }
     .summary-item {
       display: flex;
       align-items: baseline;
       gap: 4px;
       padding: 0 6px;
-      border-radius: 4px;
-      background: #fafbfc;
+      border-radius: 8px;
+      background: var(--glass-bg-soft);
     }
     .summary-item-primary {
-      background: #f0fdf4;
+      background: var(--accent-positive-soft);
     }
     .summary-label {
       font-size: 9px;
       font-weight: 600;
-      color: #999;
+      color: var(--text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.3px;
       white-space: nowrap;
@@ -328,13 +329,13 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     .summary-value {
       font-size: 32px;
       font-weight: 800;
-      color: #1a1a1a;
+      color: var(--accent-primary);
       line-height: 1.1;
     }
     .summary-value-primary {
       font-size: 18px;
       font-weight: 800;
-      color: #10b981;
+      color: var(--accent-positive);
     }
     /* 事業部カードコンテナ（残り高さいっぱいに拡張） */
     .dept-cards-container {
@@ -353,23 +354,23 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       display: flex;
       flex-direction: column;
       flex-grow: 1;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #f0f4f8;
+      background: var(--glass-bg);
+      border-radius: var(--radius-card);
+      box-shadow: var(--glass-shadow);
+      border: 1px solid var(--glass-border);
       overflow: hidden;
     }
     .dept-header {
       padding: 4px 8px;
-      background-color: #f8fafc;
-      border-bottom: 1px solid #e8e8e8;
+      background-color: var(--glass-bg-soft);
+      border-bottom: 1px solid var(--glass-border);
       flex-shrink: 0;
     }
     .dept-name {
       margin: 0;
       font-size: 13px;
       font-weight: 700;
-      color: #1a1a1a;
+      color: var(--text-strong);
     }
     .dept-content {
       display: flex;
@@ -384,7 +385,7 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       grid-template-columns: 1fr 1fr;
       gap: 4px 8px;
       align-content: space-between;
-      background-color: #fafbfc;
+      background-color: transparent;
       overflow-y: hidden;
     }
     .stat-item {
@@ -395,21 +396,21 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       min-width: 0;
     }
     .stat-label {
-      color: #666;
+      color: var(--text-secondary);
       font-weight: 600;
       flex-shrink: 0;
       font-size: 13px;
       white-space: nowrap;
     }
     .stat-value {
-      color: #1a1a1a;
+      color: var(--text-primary);
       font-weight: 600;
       text-align: left;
       font-size: 14px;
     }
     .stat-divider {
       grid-column: 1 / -1;
-      border-top: 1px solid #e0e0e0;
+      border-top: 1px solid var(--glass-border);
       margin: 0;
     }
     /* 補正係数バッジ（条件付きスタイル・アラートバッジ風） */
@@ -469,9 +470,9 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       align-content: start;
     }
     .employee-mini-card {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-tile);
       padding: 8px;
       font-size: 10px;
       transition: all 0.2s ease;
@@ -480,29 +481,29 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       gap: 4px;
     }
     .employee-mini-card:hover {
-      border-color: #2196f3;
-      box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+      border-color: var(--accent-primary);
+      box-shadow: 0 2px 8px var(--accent-primary-soft);
     }
     .employee-mini-card.locked {
-      background-color: #fffbf0;
-      border-color: #ffc107;
+      background-color: var(--accent-warning-soft);
+      border-color: var(--accent-warning);
     }
     .employee-mini-card.candidate {
-      background-color: #f0f7ff;
-      border-color: #90caf9;
+      background-color: var(--accent-positive-soft);
+      border-color: var(--accent-positive);
     }
     .candidate-badge {
       align-self: flex-start;
       font-size: 8px;
       font-weight: 700;
-      color: #1565c0;
-      background-color: #bbdefb;
+      color: #ffffff;
+      background-color: var(--accent-positive);
       padding: 1px 5px;
       border-radius: 8px;
     }
     .emp-id {
       font-weight: 700;
-      color: #1a1a1a;
+      color: var(--text-primary);
       text-align: center;
       font-size: 10px;
       overflow: hidden;
@@ -511,31 +512,34 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     }
     .emp-abilities {
       font-size: 9px;
-      color: #666;
+      color: var(--text-secondary);
       line-height: 1.2;
     }
     .emp-select {
       width: 100%;
       padding: 4px 6px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--glass-border);
       border-radius: 3px;
       font-size: 9px;
       cursor: pointer;
+      background-color: var(--glass-bg-strong);
+      color: var(--text-primary);
     }
     .emp-lock-btn {
       width: 100%;
       padding: 4px 6px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--glass-border);
       border-radius: 3px;
-      background-color: white;
+      background-color: var(--glass-bg-strong);
+      color: var(--text-primary);
       font-size: 10px;
       cursor: pointer;
       margin-top: 4px;
       transition: all 0.2s ease;
     }
     .emp-lock-btn:hover {
-      background-color: #f0f0f0;
-      border-color: #999;
+      background-color: var(--glass-border-strong);
+      border-color: var(--text-tertiary);
     }
     /* 右側：一時置き場 */
     .right-section {
@@ -550,10 +554,10 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     }
     /* 一時置き場パネル */
     .temp-panel {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #f0f4f8;
+      background: var(--glass-bg);
+      border-radius: var(--radius-card);
+      box-shadow: var(--glass-shadow);
+      border: 1px solid var(--glass-border);
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -564,8 +568,8 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     }
     .temp-header {
       padding: 12px 16px;
-      background-color: #f8fafc;
-      border-bottom: 1px solid #e8e8e8;
+      background-color: var(--glass-bg-soft);
+      border-bottom: 1px solid var(--glass-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -582,27 +586,27 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       margin: 0;
       font-size: 14px;
       font-weight: 700;
-      color: #1a1a1a;
+      color: var(--text-strong);
     }
     .temp-title-vertical {
       margin: 0;
       font-size: 12px;
       font-weight: 700;
-      color: #1a1a1a;
+      color: var(--text-strong);
       writing-mode: vertical-rl;
       letter-spacing: 1px;
     }
     .temp-badge {
       font-size: 11px;
-      background-color: #e0e0e0;
-      color: #333;
+      background-color: var(--glass-bg-strong);
+      color: var(--text-primary);
       padding: 2px 8px;
       border-radius: 12px;
       font-weight: 600;
     }
     .temp-toggle-btn {
       background: none;
-      border: 1px solid #ddd;
+      border: 1px solid var(--glass-border);
       border-radius: 4px;
       width: 24px;
       height: 24px;
@@ -611,11 +615,11 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       justify-content: center;
       cursor: pointer;
       font-size: 12px;
-      color: #555;
+      color: var(--text-secondary);
       flex-shrink: 0;
     }
     .temp-toggle-btn:hover {
-      background-color: #eef2f7;
+      background-color: var(--glass-bg-strong);
     }
     .temp-list {
       flex: 1;
@@ -630,36 +634,36 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: #999;
+      color: var(--text-tertiary);
       font-size: 12px;
       text-align: center;
     }
     /* 下部セクション */
     .comparison-sections {
       padding: 16px;
-      background-color: #f8fafc;
-      border-top: 1px solid #e2e8f0;
+      background-color: var(--bg-page);
+      border-top: 1px solid var(--glass-border);
       overflow-y: auto;
     }
     .comparison-section {
-      background: white;
+      background: var(--glass-bg);
       padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #f0f4f8;
+      border-radius: var(--radius-card);
+      box-shadow: var(--glass-shadow);
+      border: 1px solid var(--glass-border);
       margin-bottom: 16px;
     }
     .section-title {
       margin: 0 0 12px 0;
-      color: #1a1a1a;
+      color: var(--text-strong);
       font-size: 14px;
       font-weight: 700;
     }
     /* テーブル */
     .comparison-table-wrapper {
       overflow-x: auto;
-      border-radius: 6px;
-      border: 1px solid #e8e8e8;
+      border-radius: var(--radius-tile);
+      border: 1px solid var(--glass-border);
     }
     .comparison-table {
       width: 100%;
@@ -667,31 +671,33 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       font-size: 11px;
     }
     .comparison-table thead {
-      background-color: #2196f3;
-      color: white;
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary);
     }
     .comparison-table th {
       padding: 10px 8px;
       text-align: center;
       font-weight: 600;
-      border: 1px solid #1976d2;
+      border: 1px solid var(--glass-border-strong);
     }
     .comparison-table td {
       padding: 8px;
       text-align: right;
-      border: 1px solid #e8e8e8;
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
     }
     .comparison-table tbody tr:nth-child(odd) {
-      background-color: #fafbfc;
+      background-color: var(--glass-bg-soft);
     }
     .comparison-table tbody tr:hover {
-      background-color: #f0f6ff;
+      background-color: var(--accent-primary-soft);
     }
     .comparison-table .objective-name {
       text-align: left;
       font-weight: 600;
-      color: #1a1a1a;
-      background-color: #e7f3ff;
+      color: var(--text-strong);
+      background-color: var(--glass-bg-strong);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
     }
     /* スクロールバーを非表示 */
     .left-section::-webkit-scrollbar,
@@ -709,10 +715,10 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     }
     /* ステータス */
     .text-success {
-      color: #28a745;
+      color: var(--accent-positive);
     }
     .text-danger {
-      color: #dc3545;
+      color: var(--accent-danger);
     }
     /* 無効状態 */
     button:disabled {
@@ -729,9 +735,9 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
-      border-radius: 8px;
-      border: 2px dashed #e2e8f0;
+      background: linear-gradient(135deg, var(--glass-bg-soft) 0%, rgba(255, 255, 255, 0.01) 100%);
+      border-radius: var(--radius-card);
+      border: 1px dashed var(--glass-border-strong);
     }
     .empty-state-content {
       text-align: center;
@@ -746,19 +752,19 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       margin: 0 0 12px 0;
       font-size: 18px;
       font-weight: 700;
-      color: #1a1a1a;
+      color: var(--text-strong);
     }
     .empty-state-description {
       margin: 0 0 16px 0;
       font-size: 13px;
-      color: #666;
+      color: var(--text-secondary);
       line-height: 1.6;
     }
     .empty-state-hint {
       padding: 12px 16px;
-      background-color: white;
-      border-radius: 6px;
-      border: 1px solid #e8e8e8;
+      background-color: var(--glass-bg);
+      border-radius: var(--radius-tile);
+      border: 1px solid var(--glass-border);
     }
     /* スケルトンローディング */
     .dept-cards-skeleton {
@@ -768,10 +774,10 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     }
     .skeleton-card {
       height: 240px;
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background: linear-gradient(90deg, rgba(0, 0, 0, 0.04) 25%, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.04) 75%);
       background-size: 200% 100%;
       animation: skeleton-loading 1.5s infinite;
-      border-radius: 8px;
+      border-radius: var(--radius-card);
     }
     @keyframes skeleton-loading {
       0% {
@@ -786,11 +792,110 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: #ccc;
+      color: var(--text-tertiary);
     }
     /* アニメーション */
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+    /* 部門表示メニューアイテム */
+    .dept-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-primary);
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+    .dept-menu-item:hover {
+      background: var(--glass-bg-soft);
+    }
+    /* 検索トグルと部門フィルターのレイアウト */
+    .manual-search-toggle-with-filters {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+      background: var(--glass-bg);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 8px 16px;
+    }
+    .search-toggle-section {
+      flex: 1;
+      min-width: 0;
+    }
+    .search-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--glass-bg-soft);
+      border: 1px solid var(--glass-border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-primary);
+      width: 100%;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .search-toggle-btn:hover {
+      background: var(--glass-border);
+    }
+    .toggle-icon {
+      font-size: 12px;
+      flex-shrink: 0;
+      color: var(--text-secondary);
+    }
+    .toggle-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .selection-badge {
+      background-color: var(--accent-primary);
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    /* ピル型部門フィルター */
+    .dept-filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      align-items: center;
+    }
+    .dept-filter-pill {
+      padding: 4px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      background-color: var(--glass-bg-soft);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .dept-filter-pill:hover {
+      border-color: var(--accent-primary);
+      background-color: var(--glass-bg);
+    }
+    .dept-filter-pill.active {
+      background-color: var(--accent-primary-soft);
+      color: var(--accent-primary);
+      border-color: var(--accent-primary);
+      font-weight: 700;
     }
   `]
 })
@@ -805,6 +910,7 @@ export class App implements OnInit, OnDestroy {
   protected employees = signal<Employee[]>([]);
   protected mainEmployees = signal<Employee[]>([]);
   protected simulationResult = signal<SimulationResult>(this.createEmptyResult());
+  protected previousSimulationResult = signal<SimulationResult>(this.createEmptyResult());
   protected optimizationExplanation = signal<any>(null);
   protected objectiveComparisonResults = signal<ObjectiveComparisonResult[]>([]);
   protected objectiveComparisonResultsWithAdditional = signal<ObjectiveComparisonResult[]>([]);
@@ -816,6 +922,7 @@ export class App implements OnInit, OnDestroy {
   protected additionalFileName = signal<string>('');
   protected toastMessage = signal<string>('');
   protected toastVisible = signal<boolean>(false);
+  protected toastType = signal<'success' | 'warning'>('warning');
   private toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
   protected deptIds: DepartmentId[] = ['A', 'B', 'C', 'Temp'];
   protected deptConfig = DEPT_CONFIG;
@@ -824,6 +931,12 @@ export class App implements OnInit, OnDestroy {
   protected optimizationReason: string = '';
   protected currentScreen = signal<'dashboard' | 'objective' | 'matrix' | 'manual'>('dashboard');
   protected tempPanelOpen = signal<boolean>(true);
+
+  // サイドバー・配置案スナップショット管理
+  private static readonly SNAPSHOT_STORAGE_KEY = 'transhr_placement_snapshots';
+  protected sidebarOpen = signal<boolean>(false);
+  protected savedPlansExpanded = signal<boolean>(false);
+  protected savedSnapshots = signal<PlacementSnapshot[]>([]);
 
   // 従業員一括配置管理
   employeeSearchQuery: string = '';
@@ -836,6 +949,9 @@ export class App implements OnInit, OnDestroy {
   selectedForBulkMove = signal<Set<string>>(new Set());
   selectedMoveDestination = signal<string>('');
   manualSearchPanelOpen = signal<boolean>(false);
+
+  // 手動調整タブ用部門表示制御
+  visibleDepts = signal<Set<string>>(new Set(['A', 'B', 'C']));
 
   // 手動調整タブ用高度フィルター
   manualFilterDept = signal<string>('');
@@ -876,6 +992,11 @@ export class App implements OnInit, OnDestroy {
     });
   });
 
+  // ロックされた社員が1人でも存在するか（固定条件での再計算ボタン表示制御）
+  hasLockedEmployees = computed(() => {
+    return this.employees().some(emp => emp.isLocked);
+  });
+
   // グラフ用データ
   protected matrixChartLabels = signal<string[]>([]);
   protected matrixChartData = signal<any>({
@@ -884,15 +1005,15 @@ export class App implements OnInit, OnDestroy {
       {
         label: '売上差分(億円)',
         data: [],
-        backgroundColor: '#2196f3',
-        borderColor: '#1976d2',
+        backgroundColor: '#0056d2',
+        borderColor: '#003fa3',
         borderWidth: 1,
       },
       {
         label: '利益差分(億円)',
         data: [],
-        backgroundColor: '#28a745',
-        borderColor: '#1e7e34',
+        backgroundColor: '#34c759',
+        borderColor: '#248a3d',
         borderWidth: 1,
       },
     ],
@@ -903,6 +1024,9 @@ export class App implements OnInit, OnDestroy {
     plugins: {
       legend: {
         position: 'top',
+        labels: {
+          color: '#1d1d1f',
+        },
       },
       tooltip: {
         callbacks: {
@@ -924,7 +1048,7 @@ export class App implements OnInit, OnDestroy {
           }
           return value.toFixed(2);
         },
-        color: '#333',
+        color: '#1d1d1f',
         font: {
           size: 12,
           weight: 'bold',
@@ -940,6 +1064,13 @@ export class App implements OnInit, OnDestroy {
         title: {
           display: true,
           text: '課題',
+          color: '#86868b',
+        },
+        ticks: {
+          color: '#86868b',
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.08)',
         },
       },
       y: {
@@ -949,9 +1080,14 @@ export class App implements OnInit, OnDestroy {
         title: {
           display: true,
           text: '売上・利益差分(億円)',
+          color: '#86868b',
+        },
+        ticks: {
+          color: '#86868b',
         },
         grid: {
           drawOnChartArea: true,
+          color: 'rgba(0, 0, 0, 0.08)',
         },
       },
       y1: {
@@ -961,8 +1097,12 @@ export class App implements OnInit, OnDestroy {
         title: {
           display: true,
           text: '一人あたり利益差分(万円)',
+          color: '#86868b',
         },
         beginAtZero: true,
+        ticks: {
+          color: '#86868b',
+        },
         grid: {
           drawOnChartArea: false,
         },
@@ -985,8 +1125,8 @@ export class App implements OnInit, OnDestroy {
   protected objectiveChartData1 = signal<any>({
     labels: [],
     datasets: [
-      { label: '全社売上(億円)', data: [], backgroundColor: '#2196f3', borderColor: '#1976d2', borderWidth: 1 },
-      { label: '全社利益(億円)', data: [], backgroundColor: '#28a745', borderColor: '#1e7e34', borderWidth: 1 },
+      { label: '全社売上(億円)', data: [], backgroundColor: '#0056d2', borderColor: '#003fa3', borderWidth: 1 },
+      { label: '全社利益(億円)', data: [], backgroundColor: '#34c759', borderColor: '#248a3d', borderWidth: 1 },
     ],
   });
 
@@ -995,7 +1135,7 @@ export class App implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: true,
     plugins: {
-      legend: { position: 'top' },
+      legend: { position: 'top', labels: { color: '#1d1d1f' } },
       tooltip: {
         callbacks: {
           label: (context) => {
@@ -1014,12 +1154,21 @@ export class App implements OnInit, OnDestroy {
         formatter: (value) => {
           return value ? `${(value as number).toFixed(2)}` : '';
         },
-        color: '#333',
+        color: '#1d1d1f',
       },
     },
     scales: {
-      y: { stacked: false, title: { display: true, text: '金額(億円)' } },
-      x: { stacked: false },
+      y: {
+        stacked: false,
+        title: { display: true, text: '金額(億円)', color: '#86868b' },
+        ticks: { color: '#86868b' },
+        grid: { color: 'rgba(0, 0, 0, 0.08)' },
+      },
+      x: {
+        stacked: false,
+        ticks: { color: '#86868b' },
+        grid: { color: 'rgba(0, 0, 0, 0.08)' },
+      },
     },
   };
 
@@ -1029,7 +1178,7 @@ export class App implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: true,
     plugins: {
-      legend: { position: 'top' },
+      legend: { position: 'top', labels: { color: '#1d1d1f' } },
       tooltip: {
         callbacks: {
           label: (context) => {
@@ -1079,6 +1228,7 @@ export class App implements OnInit, OnDestroy {
       });
 
     this.setupActivityListener();
+    this.loadSnapshotsFromStorage();
     console.log('[App] ngOnInit completed');
   }
 
@@ -1125,6 +1275,125 @@ export class App implements OnInit, OnDestroy {
     this.tempPanelOpen.update(open => !open);
   }
 
+  // ===== サイドバー・配置案スナップショット =====
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update(open => !open);
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
+
+  toggleSavedPlans(): void {
+    this.savedPlansExpanded.update(expanded => !expanded);
+  }
+
+  private loadSnapshotsFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(App.SNAPSHOT_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as PlacementSnapshot[];
+        this.savedSnapshots.set(Array.isArray(parsed) ? parsed : []);
+      }
+    } catch (error) {
+      console.error('配置案の読み込みに失敗しました:', error);
+      this.savedSnapshots.set([]);
+    }
+  }
+
+  private persistSnapshots(): void {
+    try {
+      localStorage.setItem(App.SNAPSHOT_STORAGE_KEY, JSON.stringify(this.savedSnapshots()));
+    } catch (error) {
+      console.error('配置案の保存に失敗しました:', error);
+    }
+  }
+
+  saveCurrentPlacement(): void {
+    if (this.employees().length === 0) {
+      alert('保存できる配置がありません。従業員データを読み込んでください。');
+      return;
+    }
+
+    const defaultName = `配置案 ${this.savedSnapshots().length + 1}`;
+    const name = window.prompt('配置案の名前を入力してください', defaultName);
+    if (name === null) return;
+
+    const trimmedName = name.trim() || defaultName;
+    const result = this.simulationResult();
+
+    const snapshot: PlacementSnapshot = {
+      id: `snapshot_${Date.now()}`,
+      name: trimmedName,
+      createdAt: new Date().toISOString(),
+      employees: this.employees().map(emp => ({ ...emp })),
+      selectedObjective: this.selectedObjective,
+      optimizationExecuted: this.optimizationExecuted(),
+      kpi: {
+        totalSales: result.totalSales,
+        totalProfit: result.totalProfit,
+        perCapitaProfit: result.perCapitaProfit,
+      },
+    };
+
+    this.savedSnapshots.update(snapshots => [snapshot, ...snapshots]);
+    this.persistSnapshots();
+    this.showToast(`配置案「${trimmedName}」を保存しました`, 'success');
+  }
+
+  loadSnapshot(snapshot: PlacementSnapshot): void {
+    const restoredEmployees = snapshot.employees.map(emp => ({ ...emp }));
+    this.employees.set(restoredEmployees);
+
+    // メイン従業員（採用予定者を除外）も復元
+    const mainOnly = restoredEmployees.filter(emp => emp.source !== 'candidate');
+    this.mainEmployees.set(mainOnly);
+
+    this.selectedObjective = snapshot.selectedObjective;
+    this.optimizationExecuted.set(snapshot.optimizationExecuted);
+
+    this.updateSimulation();
+
+    // 比較結果は再計算が必要なためリセット
+    this.objectiveComparisonResults.set([]);
+    this.objectiveComparisonResultsWithAdditional.set([]);
+    this.matrixComparisonResults.set([]);
+
+    // 手動調整タブへ遷移してサイドバーを閉じる
+    this.currentScreen.set('manual');
+    this.closeSidebar();
+
+    // 復元直後から差分を表示するために、復元後の状態を基準とする
+    this.previousSimulationResult.set(this.simulationResult());
+
+    this.showToast(`配置案「${snapshot.name}」を復元しました`, 'success');
+  }
+
+  deleteSnapshot(snapshot: PlacementSnapshot, event: Event): void {
+    event.stopPropagation();
+    if (!window.confirm(`配置案「${snapshot.name}」を削除しますか？`)) return;
+
+    this.savedSnapshots.update(snapshots => snapshots.filter(s => s.id !== snapshot.id));
+    this.persistSnapshots();
+  }
+
+  toggleDeptVisibility(dept: string): void {
+    this.visibleDepts.update(visible => {
+      const newSet = new Set(visible);
+      if (newSet.has(dept)) {
+        newSet.delete(dept);
+      } else {
+        newSet.add(dept);
+      }
+      return newSet;
+    });
+  }
+
+  isDeptVisible(dept: string): boolean {
+    return this.visibleDepts().has(dept);
+  }
+
   goToObjectiveComparison(): void {
     this.currentScreen.set('objective');
     if (this.objectiveComparisonResults().length === 0) {
@@ -1141,6 +1410,7 @@ export class App implements OnInit, OnDestroy {
 
   goToManualAdjustment(): void {
     this.currentScreen.set('manual');
+    this.previousSimulationResult.set(this.simulationResult());
   }
 
   toggleManualSearchPanel(): void {
@@ -1177,16 +1447,44 @@ export class App implements OnInit, OnDestroy {
     const selectedIds = this.selectedForBulkMove();
     if (selectedIds.size === 0) return;
 
+    // 配置変更前の状態を保存（ロールバック用・差分表示用）
+    const previousEmployees = [...this.employees()];
+    const stateBefore = this.simulationResult();
+
     this.employees.update(emps =>
       emps.map(emp =>
         selectedIds.has(emp.id) ? { ...emp, assignedDept: deptId } : emp
       )
     );
 
+    // シミュレーション結果を再計算してサマリーを更新
+    this.updateSimulation();
+
+    const result = this.simulationResult();
+    if (result) {
+      // 手動配置時は最低配置人数のみチェック（全社売上58億円の制約は警告のみ）
+      const violationMessage = this.getConstraintViolationMessageManual(result);
+      if (violationMessage) {
+        alert(violationMessage);
+        // ロールバック
+        this.employees.set(previousEmployees);
+        this.updateSimulation();
+        return;
+      }
+
+      // 全社売上58億円未満の場合は警告をトースト表示（3秒間）
+      if (result.totalSales < this.minTotalSales) {
+        this.showToast(`警告: 全社売上が58億円を下回っています（現在値: ${result.totalSales.toFixed(2)}億円）`);
+      }
+    }
+
     this.selectedForBulkMove.set(new Set());
     this.selectedMoveDestination.set('');
     this.manualSearchQuery.set('');
     this.manualSearchPanelOpen.set(false);
+
+    // 一括移動成功時に、操作前の状態を前回の状態として保存（差分表示用）
+    this.previousSimulationResult.set(stateBefore);
   }
 
   bulkLockManualEmployees(): void {
@@ -1312,11 +1610,12 @@ export class App implements OnInit, OnDestroy {
       });
   }
 
-  showToast(message: string): void {
+  showToast(message: string, type: 'success' | 'warning' = 'warning'): void {
     if (this.toastTimeoutId !== null) {
       clearTimeout(this.toastTimeoutId);
     }
     this.toastMessage.set(message);
+    this.toastType.set(type);
     this.toastVisible.set(true);
     this.toastTimeoutId = setTimeout(() => {
       this.toastVisible.set(false);
@@ -1369,7 +1668,7 @@ export class App implements OnInit, OnDestroy {
       this.employees.set(combinedEmployees);
       this.mainEmployees.set(combinedEmployees);
       this.tempPanelOpen.set(true);
-      this.showToast(`${newEmployees.length}名の従業員データを読み込みました`);
+      this.showToast(`${newEmployees.length}名の従業員データを読み込みました`, 'success');
       console.log('従業員ファイル読み込み完了。一時置き場に追加された社員数:', newEmployees.length);
     };
     reader.readAsText(file);
@@ -1453,7 +1752,7 @@ export class App implements OnInit, OnDestroy {
         this.additionalFileName.set(this.additionalFileName() + ', ' + fileName);
       }
 
-      this.showToast(`${additionalEmployees.length}名の採用予定データを読み込みました`);
+      this.showToast(`${additionalEmployees.length}名の採用予定データを読み込みました`, 'success');
       console.log('採用予定ファイル読み込み完了。一時置き場に追加された採用候補者数:', additionalEmployees.length);
     };
     reader.readAsText(file);
@@ -1466,6 +1765,9 @@ export class App implements OnInit, OnDestroy {
 
     const previousDept = employee.assignedDept;
 
+    // 操作前の状態をキャッシュして、操作後の差分表示用に保存
+    const stateBefore = this.simulationResult();
+
     employee.assignedDept = newDept as DepartmentId;
 
     // mainEmployeesにも同じ社員がいれば更新（採用予定者除外）
@@ -1476,11 +1778,15 @@ export class App implements OnInit, OnDestroy {
       }
     }
 
+    // シグナルを明示的に更新してAngularに変更を通知（重要）
+    this.employees.set([...this.employees()]);
+
     this.updateSimulation();
 
     const result = this.simulationResult();
     if (result) {
-      const violationMessage = this.getConstraintViolationMessage(result);
+      // 手動配置時は最低配置人数のみチェック（全社売上58億円の制約は警告のみ）
+      const violationMessage = this.getConstraintViolationMessageManual(result);
       if (violationMessage) {
         alert(violationMessage);
         employee.assignedDept = previousDept;
@@ -1491,9 +1797,16 @@ export class App implements OnInit, OnDestroy {
             mainEmp.assignedDept = previousDept;
           }
         }
+        // ロールバック時もシグナルを更新
+        this.employees.set([...this.employees()]);
         this.updateSimulation();
         target.value = previousDept;
         return;
+      }
+
+      // 全社売上58億円未満の場合は警告をトースト表示（3秒間）
+      if (result.totalSales < this.minTotalSales) {
+        this.showToast(`警告: 全社売上が58億円を下回っています（現在値: ${result.totalSales.toFixed(2)}億円）`);
       }
     }
 
@@ -1501,6 +1814,9 @@ export class App implements OnInit, OnDestroy {
     this.objectiveComparisonResults.set([]);
     this.objectiveComparisonResultsWithAdditional.set([]);
     this.matrixComparisonResults.set([]);
+
+    // 配置変更成功時に、操作前の状態を前回の状態として保存（差分表示用）
+    this.previousSimulationResult.set(stateBefore);
   }
 
 
@@ -1589,6 +1905,57 @@ export class App implements OnInit, OnDestroy {
         this.selectedObjective
       );
       this.optimizationExplanation.set(explanation);
+
+      this.isProcessing.set(false);
+    }, 100);
+  }
+
+  // ロックされた社員を固定制約として、未ロック社員のみ全社売上最大化で再計算
+  runOptimizationWithLocks(): void {
+    if (!this.hasLockedEmployees()) return;
+
+    this.isProcessing.set(true);
+
+    setTimeout(() => {
+      // ロック済み社員は現在の事業部を固定変数として維持し、
+      // 未ロック社員のみを対象に「全社売上最大化」で最適化を実行
+      const optimizedEmployees = this.calculatorService.optimizePlacement(
+        this.employees(),
+        'totalSales'
+      );
+
+      this.employees.set(optimizedEmployees);
+
+      this.optimizationReason = '【固定条件での再計算】ロックされた社員を現在の事業部に固定したまま、未ロック社員のみを対象に全社売上が最大となる配置を算出しました。';
+      this.optimizationExecuted.set(true);
+
+      // mainEmployees も更新（採用予定者を除外）
+      const mainOnlyEmployees = optimizedEmployees.filter(emp => emp.source !== 'candidate');
+      this.mainEmployees.set(mainOnlyEmployees);
+
+      // シミュレーション結果とKPIを即座に反映
+      this.updateSimulation();
+      this.previousSimulationResult.set(this.simulationResult());
+
+      // 説明テキストを生成
+      const explanation = this.calculatorService.generateOptimizationExplanation(
+        optimizedEmployees,
+        this.simulationResult(),
+        'totalSales'
+      );
+      this.optimizationExplanation.set(explanation);
+
+      // 比較結果は再計算が必要なためリセット
+      this.objectiveComparisonResults.set([]);
+      this.objectiveComparisonResultsWithAdditional.set([]);
+      this.matrixComparisonResults.set([]);
+
+      const result = this.simulationResult();
+      if (result.totalSales < this.minTotalSales) {
+        this.showToast(`警告: 全社売上が58億円を下回っています（現在値: ${result.totalSales.toFixed(2)}億円）`);
+      } else {
+        this.showToast('固定条件で最適配置を再計算しました', 'success');
+      }
 
       this.isProcessing.set(false);
     }, 100);
@@ -1753,15 +2120,15 @@ export class App implements OnInit, OnDestroy {
         {
           label: '全社売上(億円)',
           data: totalSalesData,
-          backgroundColor: '#2196f3',
-          borderColor: '#1976d2',
+          backgroundColor: '#0056d2',
+          borderColor: '#003fa3',
           borderWidth: 1
         },
         {
           label: '全社利益(億円)',
           data: totalProfitData,
-          backgroundColor: '#28a745',
-          borderColor: '#1e7e34',
+          backgroundColor: '#34c759',
+          borderColor: '#248a3d',
           borderWidth: 1
         },
       ],
@@ -1773,8 +2140,8 @@ export class App implements OnInit, OnDestroy {
       datasets: [
         {
           data: [result.deptASales, result.deptBSales, result.deptCSales],
-          backgroundColor: ['#FF6B6B', '#4ECDC4', '#FFE66D'],
-          borderColor: ['#E63946', '#2C9B9E', '#FFD93D'],
+          backgroundColor: ['#0056d2', '#34c759', '#ff9500'],
+          borderColor: ['#003fa3', '#248a3d', '#c93400'],
           borderWidth: 2,
         },
       ],
@@ -1784,60 +2151,60 @@ export class App implements OnInit, OnDestroy {
   }
 
   getFulfillmentRateColor(fulfillmentRate: number | undefined): { bg: string; text: string } {
-    if (!fulfillmentRate) return { bg: '#f0f0f0', text: '#333' };
+    if (!fulfillmentRate) return { bg: 'rgba(142, 142, 147, 0.14)', text: '#86868b' };
 
     if (fulfillmentRate >= 100 && fulfillmentRate <= 120) {
-      // 100%～120%：緑（適正）
-      return { bg: '#d4edda', text: '#155724' };
+      // 100%～120%：エメラルド（適正）
+      return { bg: 'rgba(52, 199, 89, 0.1)', text: '#34c759' };
     } else if (fulfillmentRate >= 90 && fulfillmentRate < 100) {
-      // 90%～100%：薄い緑
-      return { bg: '#e8f5e9', text: '#2e7d32' };
+      // 90%～100%：薄いエメラルド
+      return { bg: 'rgba(52, 199, 89, 0.08)', text: '#34c759' };
     } else if (fulfillmentRate >= 80 && fulfillmentRate < 90) {
-      // 80%～90%：薄い緑
-      return { bg: '#e8f5e9', text: '#2e7d32' };
+      // 80%～90%：薄いエメラルド
+      return { bg: 'rgba(52, 199, 89, 0.08)', text: '#34c759' };
     } else if (fulfillmentRate >= 70 && fulfillmentRate < 80) {
-      // 70%～80%：黄色・オレンジ
-      return { bg: '#fff3cd', text: '#856404' };
+      // 70%～80%：アンバー
+      return { bg: 'rgba(255, 149, 0, 0.12)', text: '#ff9500' };
     } else {
-      // その他：赤
-      return { bg: '#f8d7da', text: '#721c24' };
+      // その他：レッド
+      return { bg: 'rgba(255, 59, 48, 0.1)', text: '#ff3b30' };
     }
   }
 
   getCorrectionCoefficientColor(coefficient: number | undefined): { bg: string; text: string } {
-    if (coefficient === undefined || coefficient === null) return { bg: '#f0f0f0', text: '#333' };
+    if (coefficient === undefined || coefficient === null) return { bg: 'rgba(142, 142, 147, 0.14)', text: '#86868b' };
 
     if (coefficient >= 1.0) {
-      // 1.00：緑（最適）
-      return { bg: '#d4edda', text: '#155724' };
+      // 1.00：エメラルド（最適）
+      return { bg: 'rgba(52, 199, 89, 0.1)', text: '#34c759' };
     } else if (coefficient >= 0.9) {
-      // 0.90～0.99：薄い緑
-      return { bg: '#e8f5e9', text: '#2e7d32' };
+      // 0.90～0.99：薄いエメラルド
+      return { bg: 'rgba(52, 199, 89, 0.08)', text: '#34c759' };
     } else if (coefficient >= 0.7) {
-      // 0.70～0.89：黄色・オレンジ
-      return { bg: '#fff3cd', text: '#856404' };
+      // 0.70～0.89：アンバー
+      return { bg: 'rgba(255, 149, 0, 0.12)', text: '#ff9500' };
     } else {
-      // 0.70未満：赤
-      return { bg: '#f8d7da', text: '#721c24' };
+      // 0.70未満：レッド
+      return { bg: 'rgba(255, 59, 48, 0.1)', text: '#ff3b30' };
     }
   }
 
   getCoefficientColorForRange(coefficient: number | undefined): string {
-    if (coefficient === undefined || coefficient === null) return '#f0f0f0';
-    if (coefficient >= 1.0) return '#d4edda';
-    if (coefficient >= 0.9) return '#e8f5e9';
-    if (coefficient >= 0.7) return '#fff3cd';
-    return '#f8d7da';
+    if (coefficient === undefined || coefficient === null) return 'rgba(142, 142, 147, 0.14)';
+    if (coefficient >= 1.0) return 'rgba(52, 199, 89, 0.1)';
+    if (coefficient >= 0.9) return 'rgba(52, 199, 89, 0.08)';
+    if (coefficient >= 0.7) return 'rgba(255, 149, 0, 0.12)';
+    return 'rgba(255, 59, 48, 0.1)';
   }
 
   getPenaltyBadge(coefficient: number | undefined): { bg: string; text: string; label: string } {
     if (coefficient === undefined || coefficient === null) {
-      return { bg: '#f0f0f0', text: '#666', label: '‐' };
+      return { bg: 'rgba(142, 142, 147, 0.14)', text: '#86868b', label: '‐' };
     }
     if (coefficient >= 1.0) {
-      return { bg: '#e6f4ea', text: '#1e7e34', label: 'ペナルティなし' };
+      return { bg: 'rgba(52, 199, 89, 0.1)', text: '#34c759', label: 'ペナルティなし' };
     }
-    return { bg: '#fce8e6', text: '#c0392b', label: 'ペナルティあり' };
+    return { bg: 'rgba(255, 59, 48, 0.1)', text: '#ff3b30', label: 'ペナルティあり' };
   }
 
   getPenaltyText(totalCoeff: number, fulfillmentRate: number | undefined): string {
@@ -1975,10 +2342,10 @@ export class App implements OnInit, OnDestroy {
           label: '売上差分(億円)',
           data: salesDiffData,
           backgroundColor: (context: any) => {
-            return context.parsed.x >= 0 ? '#2196f3' : '#dc3545';
+            return context.parsed.x >= 0 ? '#0056d2' : '#ff3b30';
           },
           borderColor: (context: any) => {
-            return context.parsed.x >= 0 ? '#1976d2' : '#c82333';
+            return context.parsed.x >= 0 ? '#003fa3' : '#d70015';
           },
           borderWidth: 1,
           yAxisID: 'y',
@@ -1988,10 +2355,10 @@ export class App implements OnInit, OnDestroy {
           label: '利益差分(億円)',
           data: profitDiffData,
           backgroundColor: (context: any) => {
-            return context.parsed.x >= 0 ? '#28a745' : '#dc3545';
+            return context.parsed.x >= 0 ? '#34c759' : '#ff3b30';
           },
           borderColor: (context: any) => {
-            return context.parsed.x >= 0 ? '#1e7e34' : '#c82333';
+            return context.parsed.x >= 0 ? '#248a3d' : '#d70015';
           },
           borderWidth: 1,
           yAxisID: 'y',
@@ -2000,15 +2367,15 @@ export class App implements OnInit, OnDestroy {
           type: 'line',
           label: '一人あたり利益差分(万円)',
           data: perCapitaProfitDiffData,
-          borderColor: '#ff9800',
-          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          borderColor: '#ff9500',
+          backgroundColor: 'rgba(255, 180, 84, 0.1)',
           borderWidth: 2,
           tension: 0.4,
           fill: false,
           pointRadius: 5,
           pointHoverRadius: 7,
-          pointBackgroundColor: '#ff9800',
-          pointBorderColor: '#fff',
+          pointBackgroundColor: '#ff9500',
+          pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           yAxisID: 'y1',
         },
@@ -2250,12 +2617,30 @@ export class App implements OnInit, OnDestroy {
   }
 
   private getConstraintViolationMessage(result: SimulationResult): string | null {
-    // 制約1: 全社売上が58億円を下回らない
+    // 制約1: 全社売上が58億円を下回らない（最適配置時のハード制約）
     if (result.totalSales < MIN_TOTAL_SALES) {
       return `操作不可: 全社売上が58億円を下回ります（現在値: ${result.totalSales.toFixed(2)}億円）`;
     }
 
     // 制約2: 各事業部が最低配置人数を下回らない
+    const deptConstraints = [
+      { deptId: 'A', headcount: result.deptA.headcount, minCount: DEPT_CONFIG.A.minCount },
+      { deptId: 'B', headcount: result.deptB.headcount, minCount: DEPT_CONFIG.B.minCount },
+      { deptId: 'C', headcount: result.deptC.headcount, minCount: DEPT_CONFIG.C.minCount }
+    ];
+
+    for (const constraint of deptConstraints) {
+      if (constraint.headcount < constraint.minCount) {
+        return `操作不可: ${constraint.deptId}事業部の人数が最低配置人数(${constraint.minCount}名)を下回ります（現在値: ${constraint.headcount}名）`;
+      }
+    }
+
+    return null;
+  }
+
+  // 手動配置時の制約チェック（最低配置人数のみ）
+  private getConstraintViolationMessageManual(result: SimulationResult): string | null {
+    // 制約: 各事業部が最低配置人数を下回らない
     const deptConstraints = [
       { deptId: 'A', headcount: result.deptA.headcount, minCount: DEPT_CONFIG.A.minCount },
       { deptId: 'B', headcount: result.deptB.headcount, minCount: DEPT_CONFIG.B.minCount },

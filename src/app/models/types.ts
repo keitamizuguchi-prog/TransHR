@@ -96,6 +96,20 @@ export interface ObjectiveComparisonResult {
   deptCProfit: number;
 }
 
+export interface PlacementSnapshot {
+  id: string;
+  name: string;
+  createdAt: string;
+  employees: Employee[];
+  selectedObjective: OptimizationObjective;
+  optimizationExecuted: boolean;
+  kpi: {
+    totalSales: number;
+    totalProfit: number;
+    perCapitaProfit: number;
+  };
+}
+
 export interface MatrixComparisonResult {
   objectiveName: string;
 

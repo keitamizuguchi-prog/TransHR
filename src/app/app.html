@@ -2,17 +2,17 @@
   <!-- ログイン画面 -->
   <div *ngIf="!isAuthenticated()" class="login-container">
     <div style="text-align: center;">
-      <h1 style="font-size: 48px; color: #1a1a1a; margin: 0 0 16px 0; font-weight: 700;">人材配置シミュレーション</h1>
-      <p style="font-size: 18px; color: #666; margin: 0; line-height: 1.6;">
+      <h1 style="font-size: 48px; color: var(--text-strong); margin: 0 0 16px 0; font-weight: 700;">人材配置シミュレーション</h1>
+      <p style="font-size: 18px; color: var(--text-secondary); margin: 0; line-height: 1.6;">
         最適な人員配置を自動算出<br>
         経営計画の提案を行えます
       </p>
     </div>
-    <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); text-align: center;">
+    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 40px; border-radius: var(--radius-card); box-shadow: var(--glass-shadow); text-align: center;">
       <div style="font-size: 64px; margin-bottom: 24px;">📊</div>
-      <h2 style="font-size: 20px; color: #1a1a1a; margin: 0 0 24px 0; font-weight: 600;">はじめる</h2>
-      <p style="color: #666; margin: 0 0 32px 0; font-size: 14px;">Googleアカウントでログインしてください</p>
-      <button (click)="loginWithGoogle()" style="padding: 16px 48px; background-color: #4285f4; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; margin: 0 auto; box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);">
+      <h2 style="font-size: 20px; color: var(--text-strong); margin: 0 0 24px 0; font-weight: 600;">はじめる</h2>
+      <p style="color: var(--text-secondary); margin: 0 0 32px 0; font-size: 14px;">Googleアカウントでログインしてください</p>
+      <button (click)="loginWithGoogle()" style="padding: 16px 48px; background-color: var(--accent-primary); color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; margin: 0 auto; box-shadow: 0 10px 30px -5px rgba(0, 86, 210, 0.25);">
         <span style="font-size: 20px;">🔐</span>
         <span>Googleでログイン</span>
       </button>
@@ -21,11 +21,82 @@
 
   <!-- ダッシュボード -->
   <ng-container *ngIf="isAuthenticated()">
+    <!-- サイドバー オーバーレイ -->
+    <div class="sidebar-overlay" [class.open]="sidebarOpen()" (click)="closeSidebar()"></div>
+
+    <!-- 階層型サイドバー -->
+    <aside class="app-sidebar" [class.open]="sidebarOpen()">
+      <div class="sidebar-header">
+        <span class="sidebar-title">メニュー</span>
+        <button type="button" class="sidebar-close-btn" (click)="closeSidebar()" aria-label="閉じる">✕</button>
+      </div>
+      <nav class="sidebar-nav">
+        <!-- 保存した配置案 -->
+        <div class="sidebar-group">
+          <button type="button" class="sidebar-menu-item" (click)="toggleSavedPlans()">
+            <span class="sidebar-menu-icon">{{ savedPlansExpanded() ? '▼' : '▶' }}</span>
+            <span class="sidebar-menu-label">💾 保存した配置案</span>
+            <span *ngIf="savedSnapshots().length > 0" class="sidebar-menu-badge">{{ savedSnapshots().length }}</span>
+          </button>
+
+          <div class="sidebar-submenu" *ngIf="savedPlansExpanded()">
+            <button type="button" class="sidebar-save-btn" (click)="saveCurrentPlacement()">
+              ＋ 現在の配置を新規保存
+            </button>
+
+            <div *ngIf="savedSnapshots().length === 0" class="sidebar-empty">
+              保存された配置案はありません
+            </div>
+
+            <ul class="snapshot-list">
+              <li *ngFor="let snapshot of savedSnapshots()" class="snapshot-item" (click)="loadSnapshot(snapshot)">
+                <div class="snapshot-info">
+                  <span class="snapshot-name">{{ snapshot.name }}</span>
+                  <span class="snapshot-kpi">
+                    売上 {{ (snapshot.kpi.totalSales | number:'1.1-1') }}億 / 利益 {{ (snapshot.kpi.totalProfit | number:'1.1-1') }}億
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  class="snapshot-delete-btn"
+                  (click)="deleteSnapshot(snapshot, $event)"
+                  title="削除"
+                  aria-label="配置案を削除"
+                >
+                  🗑
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- テンプレート管理（将来用・非活性） -->
+        <div class="sidebar-group">
+          <button type="button" class="sidebar-menu-item disabled" disabled>
+            <span class="sidebar-menu-icon">▶</span>
+            <span class="sidebar-menu-label">📋 テンプレート管理</span>
+            <span class="sidebar-menu-soon">近日公開</span>
+          </button>
+        </div>
+      </nav>
+    </aside>
+
     <!-- ヘッダー -->
     <header class="app-header">
       <div class="header-top">
         <div class="header-left">
-          <h1 class="header-title" (click)="goToDashboard()" style="cursor: pointer;">📊 人材配置シミュレーション</h1>
+          <button
+            type="button"
+            class="hamburger-btn"
+            (click)="toggleSidebar()"
+            title="メニューを開く"
+            aria-label="メニューを開く"
+          >
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+          </button>
+          <h1 class="header-title" (click)="goToDashboard()" style="cursor: pointer;">🔄 TransHR</h1>
         </div>
         <div class="header-tabs">
           <button
@@ -62,7 +133,7 @@
           >
             CSV出力
           </button>
-          <div class="header-user" style="padding-left: 12px; border-left: 1px solid #e2e8f0;">
+          <div class="header-user" style="padding-left: 12px; border-left: 1px solid var(--glass-border);">
             <span class="user-email">{{ currentUser()?.displayName || currentUser()?.email || 'ユーザー' }}</span>
             <button (click)="logout()" class="header-button header-button-logout">ログアウト</button>
           </div>
@@ -149,27 +220,85 @@
       <div class="manual-header-info" *ngIf="simulationResult() as result">
         <div class="manual-info-left">
           <div class="manual-objective-name">{{ selectedObjective === 'totalSales' ? '全社売上最大化' : selectedObjective === 'deptAProfit' ? 'A事業部利益最大化' : selectedObjective === 'deptBSales' ? 'B事業部売上最大化' : 'C事業部売上最大化' }}</div>
+          <button
+            *ngIf="hasLockedEmployees()"
+            type="button"
+            class="lock-reoptimize-btn"
+            (click)="runOptimizationWithLocks()"
+            [disabled]="isProcessing()"
+          >
+            <span class="lock-reoptimize-icon">🔒</span>
+            {{ isProcessing() ? '再計算中...' : '固定条件で最適配置を再計算' }}
+          </button>
         </div>
         <div class="manual-info-right">
-          <span class="manual-info-item">売上: {{ (result.totalSales | number:'1.1-1') }}億円</span>
-          <span class="manual-info-item">利益: {{ (result.totalProfit | number:'1.1-1') }}億円</span>
-          <span class="manual-info-item">一人あたり利益: {{ (result.perCapitaProfit | number:'1.0-0') }}万円</span>
+          <span class="manual-info-item" [style.color]="result.totalSales < minTotalSales ? '#ff3b30' : 'var(--text-primary)'" [style.font-weight]="result.totalSales < minTotalSales ? 'bold' : 'normal'">
+            売上: {{ (result.totalSales | number:'1.1-1') }}億円
+            <span class="diff-value" [ngClass]="result.totalSales - previousSimulationResult().totalSales >= 0 ? 'positive' : 'negative'">
+              {{ result.totalSales - previousSimulationResult().totalSales >= 0 ? '+' : '' }}{{ ((result.totalSales - previousSimulationResult().totalSales) | number:'1.1-1') }}
+            </span>
+            <span *ngIf="result.totalSales < minTotalSales" style="margin-left: 8px;">⚠ 警告</span>
+          </span>
+          <span class="manual-info-item">
+            利益: {{ (result.totalProfit | number:'1.1-1') }}億円
+            <span class="diff-value" [ngClass]="result.totalProfit - previousSimulationResult().totalProfit >= 0 ? 'positive' : 'negative'">
+              {{ result.totalProfit - previousSimulationResult().totalProfit >= 0 ? '+' : '' }}{{ ((result.totalProfit - previousSimulationResult().totalProfit) | number:'1.1-1') }}
+            </span>
+          </span>
+          <span class="manual-info-item">
+            一人あたり利益: {{ (result.perCapitaProfit | number:'1.0-0') }}万円
+            <span class="diff-value" [ngClass]="result.perCapitaProfit - previousSimulationResult().perCapitaProfit >= 0 ? 'positive' : 'negative'">
+              {{ result.perCapitaProfit - previousSimulationResult().perCapitaProfit >= 0 ? '+' : '' }}{{ ((result.perCapitaProfit - previousSimulationResult().perCapitaProfit) | number:'1.0-0') }}
+            </span>
+          </span>
         </div>
       </div>
 
-      <!-- 検索パネルトグルボタン -->
-      <div class="manual-search-toggle">
-        <button
-          type="button"
-          (click)="toggleManualSearchPanel()"
-          class="search-toggle-btn"
-        >
-          <span class="toggle-icon">{{ manualSearchPanelOpen() ? '▼' : '▶' }}</span>
-          <span class="toggle-label">🔍 社員検索・一括操作</span>
-          <span *ngIf="selectedForBulkMove().size > 0" class="selection-badge">
-            {{ selectedForBulkMove().size }}件選択
-          </span>
-        </button>
+      <!-- 検索パネルトグルボタン + 部門表示フィルター -->
+      <div class="manual-search-toggle-with-filters">
+        <div class="search-toggle-section">
+          <button
+            type="button"
+            (click)="toggleManualSearchPanel()"
+            class="search-toggle-btn"
+          >
+            <span class="toggle-icon">{{ manualSearchPanelOpen() ? '▼' : '▶' }}</span>
+            <span class="toggle-label">🔍 社員検索・一括操作</span>
+            <span *ngIf="selectedForBulkMove().size > 0" class="selection-badge">
+              {{ selectedForBulkMove().size }}件選択
+            </span>
+          </button>
+        </div>
+        <!-- ピル型部門フィルター -->
+        <div class="dept-filter-pills">
+          <button
+            type="button"
+            class="dept-filter-pill"
+            [class.active]="isDeptVisible('A')"
+            (click)="toggleDeptVisibility('A')"
+            title="A事業部の表示切替"
+          >
+            ✓ A部
+          </button>
+          <button
+            type="button"
+            class="dept-filter-pill"
+            [class.active]="isDeptVisible('B')"
+            (click)="toggleDeptVisibility('B')"
+            title="B事業部の表示切替"
+          >
+            ✓ B部
+          </button>
+          <button
+            type="button"
+            class="dept-filter-pill"
+            [class.active]="isDeptVisible('C')"
+            (click)="toggleDeptVisibility('C')"
+            title="C事業部の表示切替"
+          >
+            ✓ C部
+          </button>
+        </div>
       </div>
 
       <!-- 検索・一括操作パネル（折りたたみ） -->
@@ -269,7 +398,7 @@
                 (change)="toggleManualSelectEmployee(emp.id)"
               />
               <span class="emp-info">{{ emp.id }} - {{ emp.name }}</span>
-              <span class="emp-current-dept" [ngStyle]="{ 'background-color': emp.assignedDept === 'Temp' ? '#999' : emp.assignedDept === 'A' ? '#e3f2fd' : emp.assignedDept === 'B' ? '#e0f2f1' : '#fff3e0' }">
+              <span class="emp-current-dept" [ngStyle]="{ 'background-color': emp.assignedDept === 'Temp' ? 'rgba(142, 142, 147, 0.18)' : emp.assignedDept === 'A' ? 'rgba(0, 86, 210, 0.14)' : emp.assignedDept === 'B' ? 'rgba(52, 199, 89, 0.14)' : 'rgba(255, 149, 0, 0.14)' }">
                 {{ emp.assignedDept }}
               </span>
             </label>
@@ -328,10 +457,12 @@
         </div>
       </div>
 
+
       <!-- カンバンボード（全領域を使用） -->
       <div class="manual-kanban-container">
         <!-- A事業部 -->
-        <div class="dept-card-manual" *ngIf="simulationResult() as result">
+        <ng-container *ngIf="simulationResult() as result">
+        <div class="dept-card-manual" *ngIf="isDeptVisible('A')">
           <div class="manual-dept-header">
             <h3 class="manual-dept-name">A事業部</h3>
             <div class="manual-dept-stats">
@@ -346,10 +477,10 @@
               <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
               <!-- 2段目：スキル情報 -->
               <div class="emp-abilities">
-                <div [style.color]="isHighestSkill(emp, 'sales') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'management') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'management') ? '600' : '400'">管{{ emp.managementPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'pioneering') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'pioneering') ? '600' : '400'">開{{ emp.pioneeringPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'training') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'training') ? '600' : '400'">育{{ emp.trainingPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'sales') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'management') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'management') ? '600' : '400'">管{{ emp.managementPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'pioneering') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'pioneering') ? '600' : '400'">開{{ emp.pioneeringPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'training') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'training') ? '600' : '400'">育{{ emp.trainingPower.toFixed(1) }}</div>
               </div>
               <!-- 3段目：部署選択 -->
               <select
@@ -375,11 +506,13 @@
             </div>
           </div>
         </div>
+        </ng-container>
 
         <!-- B事業部 -->
-        <div class="dept-card-manual" *ngIf="simulationResult() as result">
+        <ng-container *ngIf="simulationResult() as result">
+        <div class="dept-card-manual" *ngIf="isDeptVisible('B')">
           <div class="manual-dept-header">
-            <h3 class="manual-dept-name" style="color: #17a2b8;">B事業部</h3>
+            <h3 class="manual-dept-name" style="color: #000000;">B事業部</h3>
             <div class="manual-dept-stats">
               <span>{{ optimizationExecuted() ? result.deptB.headcount : '‐' }}名</span>
               <span class="stat-badge" *ngIf="optimizationExecuted()" [ngStyle]="{ 'background-color': getFulfillmentRateColor(result.deptB.fulfillmentRate).bg, 'color': getFulfillmentRateColor(result.deptB.fulfillmentRate).text }">充足: {{ (result.deptB.fulfillmentRate | number:'1.0-0') }}%</span>
@@ -392,10 +525,10 @@
               <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
               <!-- 2段目：スキル情報 -->
               <div class="emp-abilities">
-                <div [style.color]="isHighestSkill(emp, 'sales') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'management') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'management') ? '600' : '400'">管{{ emp.managementPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'pioneering') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'pioneering') ? '600' : '400'">開{{ emp.pioneeringPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'training') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'training') ? '600' : '400'">育{{ emp.trainingPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'sales') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'management') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'management') ? '600' : '400'">管{{ emp.managementPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'pioneering') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'pioneering') ? '600' : '400'">開{{ emp.pioneeringPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'training') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'training') ? '600' : '400'">育{{ emp.trainingPower.toFixed(1) }}</div>
               </div>
               <!-- 3段目：部署選択 -->
               <select
@@ -421,11 +554,13 @@
             </div>
           </div>
         </div>
+        </ng-container>
 
         <!-- C事業部 -->
-        <div class="dept-card-manual" *ngIf="simulationResult() as result">
+        <ng-container *ngIf="simulationResult() as result">
+        <div class="dept-card-manual" *ngIf="isDeptVisible('C')">
           <div class="manual-dept-header">
-            <h3 class="manual-dept-name" style="color: #ffc107;">C事業部</h3>
+            <h3 class="manual-dept-name" style="color: #000000;">C事業部</h3>
             <div class="manual-dept-stats">
               <span>{{ optimizationExecuted() ? result.deptC.headcount : '‐' }}名</span>
               <span class="stat-badge" *ngIf="optimizationExecuted()" [ngStyle]="{ 'background-color': getFulfillmentRateColor(result.deptC.fulfillmentRate).bg, 'color': getFulfillmentRateColor(result.deptC.fulfillmentRate).text }">充足: {{ (result.deptC.fulfillmentRate | number:'1.0-0') }}%</span>
@@ -438,10 +573,10 @@
               <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
               <!-- 2段目：スキル情報 -->
               <div class="emp-abilities">
-                <div [style.color]="isHighestSkill(emp, 'sales') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'management') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'management') ? '600' : '400'">管{{ emp.managementPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'pioneering') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'pioneering') ? '600' : '400'">開{{ emp.pioneeringPower.toFixed(1) }}</div>
-                <div [style.color]="isHighestSkill(emp, 'training') ? '#1976d2' : '#999'" [style.font-weight]="isHighestSkill(emp, 'training') ? '600' : '400'">育{{ emp.trainingPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'sales') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'management') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'management') ? '600' : '400'">管{{ emp.managementPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'pioneering') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'pioneering') ? '600' : '400'">開{{ emp.pioneeringPower.toFixed(1) }}</div>
+                <div [style.color]="isHighestSkill(emp, 'training') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'training') ? '600' : '400'">育{{ emp.trainingPower.toFixed(1) }}</div>
               </div>
               <!-- 3段目：部署選択 -->
               <select
@@ -467,6 +602,7 @@
             </div>
           </div>
         </div>
+        </ng-container>
 
         <!-- 一時置き場 -->
         <div class="dept-card-manual">
@@ -475,7 +611,7 @@
             <span class="temp-badge">{{ tempEmployees.length }}名</span>
           </div>
           <div class="manual-dept-body">
-            <div *ngIf="tempEmployees.length === 0" style="padding: 24px 10px; color: #999; font-size: 12px; text-align: center;">
+            <div *ngIf="tempEmployees.length === 0" style="padding: 24px 10px; color: var(--text-tertiary); font-size: 12px; text-align: center;">
               社員がいません
             </div>
             <div *ngFor="let emp of tempEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
@@ -545,9 +681,10 @@
           <div class="summary-bar">
             <div class="summary-item">
               <span class="summary-label">全社売上</span>
-              <span class="summary-value" [ngStyle]="{ 'color': optimizationExecuted() && result.totalSales < minTotalSales ? '#dc3545' : '#1a1a1a' }">
+              <span class="summary-value" [ngStyle]="{ 'color': result.totalSales < minTotalSales ? '#ff3b30' : '#0056d2' }">
                 {{ optimizationExecuted() ? (result.totalSales | number:'1.2-2') : '‐' }} 億円
               </span>
+              <span *ngIf="optimizationExecuted() && result.totalSales < minTotalSales" style="display: block; font-size: 10px; color: #ff3b30; margin-top: 2px; font-weight: bold;">⚠ 警告</span>
             </div>
             <div class="summary-item">
               <span class="summary-label">全社総コスト</span>
@@ -557,13 +694,13 @@
             </div>
             <div class="summary-item">
               <span class="summary-label">全社利益</span>
-              <span class="summary-value" [ngStyle]="{ 'color': optimizationExecuted() && result.totalProfit < 0 ? '#dc3545' : '#1a1a1a' }">
+              <span class="summary-value" [ngStyle]="{ 'color': optimizationExecuted() && result.totalProfit < 0 ? '#ff3b30' : '#0056d2' }">
                 {{ optimizationExecuted() ? (result.totalProfit | number:'1.2-2') : '‐' }} 億円
               </span>
             </div>
             <div class="summary-item">
               <span class="summary-label">一人あたり利益</span>
-              <span class="summary-value" [ngStyle]="{ 'color': optimizationExecuted() && result.perCapitaProfit < 0 ? '#dc3545' : '#1a1a1a' }">
+              <span class="summary-value" [ngStyle]="{ 'color': optimizationExecuted() && result.perCapitaProfit < 0 ? '#ff3b30' : '#0056d2' }">
                 {{ optimizationExecuted() ? (result.perCapitaProfit | number:'1.0-0') : '‐' }} 万円
               </span>
             </div>
@@ -575,8 +712,8 @@
           <div style="display: flex; align-items: center; gap: 6px;">
             <span style="font-size: 13px; flex-shrink: 0;">💡</span>
             <div style="flex: 1; display: flex; align-items: baseline; gap: 6px; min-width: 0;">
-              <div style="font-weight: bold; font-size: 12px; color: #1976d2; white-space: nowrap; flex-shrink: 0;">最適化の方針:</div>
-              <div style="font-size: 12px; line-height: 1.3; color: #333; display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">{{ explanation.overallExplanation }}</div>
+              <div style="font-weight: bold; font-size: 12px; color: var(--accent-primary); white-space: nowrap; flex-shrink: 0;">最適化の方針:</div>
+              <div style="font-size: 12px; line-height: 1.3; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">{{ explanation.overallExplanation }}</div>
             </div>
           </div>
         </div>
@@ -590,9 +727,9 @@
               <h3 class="dept-name">A事業部</h3>
             </div>
             <!-- 配置の傾向（A事業部） -->
-            <div *ngIf="optimizationExplanation() as explanation" style="padding: 4px 8px; border-bottom: 1px solid #e2e8f0; background-color: #fafbfc; flex-shrink: 0; position: sticky; top: 26px; z-index: 1; display: flex; gap: 6px; min-height: auto;">
-              <div style="font-weight: 700; font-size: 11px; color: #1a1a1a; white-space: nowrap; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.3px;">配置の傾向:</div>
-              <div style="font-size: 11px; line-height: 1.3; color: #333; white-space: normal; word-wrap: break-word; word-break: break-word;">{{ explanation.deptA.explanation }}</div>
+            <div *ngIf="optimizationExplanation() as explanation" style="padding: 4px 8px; border-bottom: 1px solid var(--glass-border); background-color: var(--glass-bg-soft); flex-shrink: 0; position: sticky; top: 26px; z-index: 1; display: flex; gap: 6px; min-height: auto;">
+              <div style="font-weight: 700; font-size: 11px; color: var(--text-strong); white-space: nowrap; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.3px;">配置の傾向:</div>
+              <div style="font-size: 11px; line-height: 1.3; color: var(--text-primary); white-space: normal; word-wrap: break-word; word-break: break-word;">{{ explanation.deptA.explanation }}</div>
             </div>
             <div class="dept-content">
               <!-- 統計情報 -->
@@ -613,7 +750,7 @@
                   </div>
                   <div class="stat-finance-item">
                     <span class="stat-label">利益</span>
-                    <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptA.profit < 0 ? '#dc3545' : '#28a745' }">{{ optimizationExecuted() ? (result.deptA.profit | number:'1.1-1') : '‐' }}億</span>
+                    <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptA.profit < 0 ? '#ff3b30' : '#34c759' }">{{ optimizationExecuted() ? (result.deptA.profit | number:'1.1-1') : '‐' }}億</span>
                   </div>
                 </div>
 
@@ -639,7 +776,7 @@
 
                 <div class="stat-item">
                   <span class="stat-label">配置人数</span>
-                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptA.headcount < deptConfig['A'].minCount ? '#dc3545' : '#1a1a1a' }">
+                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptA.headcount < deptConfig['A'].minCount ? '#ff3b30' : 'var(--text-primary)' }">
                     {{ optimizationExecuted() ? result.deptA.headcount : '‐' }}名
                   </span>
                 </div>
@@ -664,12 +801,12 @@
           <!-- B事業部 -->
           <div class="dept-card-large" *ngIf="simulationResult() as result">
             <div class="dept-header">
-              <h3 class="dept-name" style="color: #17a2b8;">B事業部</h3>
+              <h3 class="dept-name" style="color: #000000;">B事業部</h3>
             </div>
             <!-- 配置の傾向（B事業部） -->
-            <div *ngIf="optimizationExplanation() as explanation" style="padding: 4px 8px; border-bottom: 1px solid #e2e8f0; background-color: #fafbfc; flex-shrink: 0; position: sticky; top: 26px; z-index: 1; display: flex; gap: 6px; min-height: auto;">
-              <div style="font-weight: 600; font-size: 11px; color: #1a1a1a; white-space: nowrap; flex-shrink: 0;">配置の傾向:</div>
-              <div style="font-size: 11px; line-height: 1.3; color: #666; white-space: normal; word-wrap: break-word; word-break: break-word;">{{ explanation.deptB.explanation }}</div>
+            <div *ngIf="optimizationExplanation() as explanation" style="padding: 4px 8px; border-bottom: 1px solid var(--glass-border); background-color: var(--glass-bg-soft); flex-shrink: 0; position: sticky; top: 26px; z-index: 1; display: flex; gap: 6px; min-height: auto;">
+              <div style="font-weight: 600; font-size: 11px; color: var(--text-strong); white-space: nowrap; flex-shrink: 0;">配置の傾向:</div>
+              <div style="font-size: 11px; line-height: 1.3; color: var(--text-secondary); white-space: normal; word-wrap: break-word; word-break: break-word;">{{ explanation.deptB.explanation }}</div>
             </div>
             <div class="dept-content">
               <!-- 統計情報 -->
@@ -690,7 +827,7 @@
                   </div>
                   <div class="stat-finance-item">
                     <span class="stat-label">利益</span>
-                    <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptB.profit < 0 ? '#dc3545' : '#28a745' }">{{ optimizationExecuted() ? (result.deptB.profit | number:'1.1-1') : '‐' }}億</span>
+                    <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptB.profit < 0 ? '#ff3b30' : '#34c759' }">{{ optimizationExecuted() ? (result.deptB.profit | number:'1.1-1') : '‐' }}億</span>
                   </div>
                 </div>
 
@@ -716,7 +853,7 @@
 
                 <div class="stat-item">
                   <span class="stat-label">配置人数</span>
-                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptB.headcount < deptConfig['B'].minCount ? '#dc3545' : '#1a1a1a' }">
+                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptB.headcount < deptConfig['B'].minCount ? '#ff3b30' : 'var(--text-primary)' }">
                     {{ optimizationExecuted() ? result.deptB.headcount : '‐' }}名
                   </span>
                 </div>
@@ -741,12 +878,12 @@
           <!-- C事業部 -->
           <div class="dept-card-large" *ngIf="simulationResult() as result">
             <div class="dept-header">
-              <h3 class="dept-name" style="color: #ffc107;">C事業部</h3>
+              <h3 class="dept-name" style="color: #000000;">C事業部</h3>
             </div>
             <!-- 配置の傾向（C事業部） -->
-            <div *ngIf="optimizationExplanation() as explanation" style="padding: 4px 8px; border-bottom: 1px solid #e2e8f0; background-color: #fafbfc; flex-shrink: 0; position: sticky; top: 26px; z-index: 1; display: flex; gap: 6px; min-height: auto;">
-              <div style="font-weight: 600; font-size: 11px; color: #1a1a1a; white-space: nowrap; flex-shrink: 0;">配置の傾向:</div>
-              <div style="font-size: 11px; line-height: 1.3; color: #666; white-space: normal; word-wrap: break-word; word-break: break-word;">{{ explanation.deptC.explanation }}</div>
+            <div *ngIf="optimizationExplanation() as explanation" style="padding: 4px 8px; border-bottom: 1px solid var(--glass-border); background-color: var(--glass-bg-soft); flex-shrink: 0; position: sticky; top: 26px; z-index: 1; display: flex; gap: 6px; min-height: auto;">
+              <div style="font-weight: 600; font-size: 11px; color: var(--text-strong); white-space: nowrap; flex-shrink: 0;">配置の傾向:</div>
+              <div style="font-size: 11px; line-height: 1.3; color: var(--text-secondary); white-space: normal; word-wrap: break-word; word-break: break-word;">{{ explanation.deptC.explanation }}</div>
             </div>
             <div class="dept-content">
               <!-- 統計情報 -->
@@ -767,7 +904,7 @@
                   </div>
                   <div class="stat-finance-item">
                     <span class="stat-label">利益</span>
-                    <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptC.profit < 0 ? '#dc3545' : '#28a745' }">{{ optimizationExecuted() ? (result.deptC.profit | number:'1.1-1') : '‐' }}億</span>
+                    <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptC.profit < 0 ? '#ff3b30' : '#34c759' }">{{ optimizationExecuted() ? (result.deptC.profit | number:'1.1-1') : '‐' }}億</span>
                   </div>
                 </div>
 
@@ -793,7 +930,7 @@
 
                 <div class="stat-item">
                   <span class="stat-label">配置人数</span>
-                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptC.headcount < deptConfig['C'].minCount ? '#dc3545' : '#1a1a1a' }">
+                  <span class="stat-value" [ngStyle]="{ 'color': optimizationExecuted() && result.deptC.headcount < deptConfig['C'].minCount ? '#ff3b30' : 'var(--text-primary)' }">
                     {{ optimizationExecuted() ? result.deptC.headcount : '‐' }}名
                   </span>
                 </div>
@@ -830,18 +967,18 @@
           <button
             type="button"
             (click)="toggleObjectiveDataSource('main')"
-            [style.background-color]="objectiveChartDataSource() === 'main' ? '#2196f3' : '#f0f0f0'"
-            [style.color]="objectiveChartDataSource() === 'main' ? 'white' : '#333'"
-            style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;"
+            [style.background-color]="objectiveChartDataSource() === 'main' ? '#0056d2' : 'var(--glass-bg-strong)'"
+            [style.color]="objectiveChartDataSource() === 'main' ? '#ffffff' : 'var(--text-primary)'"
+            style="padding: 6px 12px; border: 1px solid var(--glass-border); border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;"
           >
             従業員ファイルのみ
           </button>
           <button
             type="button"
             (click)="toggleObjectiveDataSourceWithCheck('additional')"
-            [style.background-color]="objectiveChartDataSource() === 'additional' ? '#2196f3' : '#f0f0f0'"
-            [style.color]="objectiveChartDataSource() === 'additional' ? 'white' : '#333'"
-            style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;"
+            [style.background-color]="objectiveChartDataSource() === 'additional' ? '#0056d2' : 'var(--glass-bg-strong)'"
+            [style.color]="objectiveChartDataSource() === 'additional' ? '#ffffff' : 'var(--text-primary)'"
+            style="padding: 6px 12px; border: 1px solid var(--glass-border); border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;"
           >
             採用予定を含む
           </button>
@@ -849,7 +986,7 @@
 
         <!-- グラフA: 全社売上・利益 -->
         <div style="margin-bottom: 32px;">
-          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">全社売上・利益の比較</h3>
+          <h3 style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0; font-weight: 600;">全社売上・利益の比較</h3>
           <canvas
             baseChart
             [type]="'bar'"
@@ -862,10 +999,10 @@
 
         <!-- グラフB: 課題ごとの部門別売上内訳 -->
         <div style="margin-bottom: 32px;">
-          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">課題別：部門別売上内訳</h3>
+          <h3 style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0; font-weight: 600;">課題別：部門別売上内訳</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
             <div *ngFor="let chartData of objectiveChartData2List(); let index = index">
-              <div style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 500;">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">
                 {{ (objectiveChartDataSource() === 'main' ? objectiveComparisonResults() : objectiveComparisonResultsWithAdditional())[index]?.objectiveName || `課題${index + 1}` }}
               </div>
               <canvas
@@ -926,7 +1063,7 @@
       <div class="comparison-section" *ngIf="matrixComparisonResults().length > 0">
         <!-- 差分グラフ -->
         <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 13px; color: #666; margin: 0 0 12px 0; font-weight: 600;">売上・利益差分の可視化</h3>
+          <h3 style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0; font-weight: 600;">売上・利益差分の可視化</h3>
           <canvas
             baseChart
             [type]="'bar'"
@@ -973,13 +1110,13 @@
                 <td>{{ result.afterTotalSales | number:'1.2-2' }}</td>
                 <td>{{ result.afterTotalProfit | number:'1.2-2' }}</td>
                 <td>{{ result.afterPerCapitaProfit | number:'1.0-0' }}</td>
-                <td [ngStyle]="{ 'color': result.salesDiff > 0 ? '#28a745' : '#dc3545' }">
+                <td [ngStyle]="{ 'color': result.salesDiff > 0 ? '#34c759' : '#ff3b30' }">
                   {{ result.salesDiff | number:'1.2-2' }}
                 </td>
-                <td [ngStyle]="{ 'color': result.profitDiff > 0 ? '#28a745' : '#dc3545' }">
+                <td [ngStyle]="{ 'color': result.profitDiff > 0 ? '#34c759' : '#ff3b30' }">
                   {{ result.profitDiff | number:'1.2-2' }}
                 </td>
-                <td [ngStyle]="{ 'color': result.perCapitaProfitDiff > 0 ? '#28a745' : '#dc3545', 'font-weight': result.perCapitaProfitDiff < 0 ? '700' : '400' }">
+                <td [ngStyle]="{ 'color': result.perCapitaProfitDiff > 0 ? '#34c759' : '#ff3b30', 'font-weight': result.perCapitaProfitDiff < 0 ? '700' : '400' }">
                   {{ result.perCapitaProfitDiff | number:'1.0-0' }}
                 </td>
               </tr>
@@ -991,27 +1128,27 @@
   </ng-container>
 
   <!-- アラート詳細モーダル -->
-  <div *ngIf="showAlertModal()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; border-radius: 8px; padding: 24px; max-width: 500px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+  <div *ngIf="showAlertModal()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-card); padding: 24px; max-width: 500px; box-shadow: var(--glass-shadow);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #1a1a1a;">アラート詳細</h2>
-        <button (click)="closeAlertModal()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: #999;">×</button>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-strong);">アラート詳細</h2>
+        <button (click)="closeAlertModal()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: var(--text-tertiary);">×</button>
       </div>
 
       <div style="max-height: 400px; overflow-y: auto;">
-        <div *ngIf="alertDetailsToShow().length === 0" style="color: #999; font-size: 14px;">
+        <div *ngIf="alertDetailsToShow().length === 0" style="color: var(--text-tertiary); font-size: 14px;">
           アラートはありません
         </div>
-        <div *ngFor="let detail of alertDetailsToShow()" style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #333; font-size: 13px;">
+        <div *ngFor="let detail of alertDetailsToShow()" style="padding: 12px 0; border-bottom: 1px solid var(--glass-border); color: var(--text-primary); font-size: 13px;">
           <div style="display: flex; gap: 8px;">
-            <span style="color: #dc3545; font-weight: 600;">⚠</span>
+            <span style="color: #ff3b30; font-weight: 600;">⚠</span>
             <span>{{ detail }}</span>
           </div>
         </div>
       </div>
 
       <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
-        <button (click)="closeAlertModal()" style="padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">
+        <button (click)="closeAlertModal()" style="padding: 8px 16px; background: #0056d2; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">
           閉じる
         </button>
       </div>
@@ -1019,8 +1156,8 @@
   </div>
 
   <!-- Toast通知 -->
-  <div *ngIf="toastVisible()" class="toast-notification">
-    <span class="toast-icon">✅</span>
+  <div *ngIf="toastVisible()" class="toast-notification" [ngClass]="'toast-' + toastType()">
+    <span class="toast-icon">{{ toastType() === 'success' ? '✅' : '⚠️' }}</span>
     <span class="toast-message">{{ toastMessage() }}</span>
   </div>
 </div>
