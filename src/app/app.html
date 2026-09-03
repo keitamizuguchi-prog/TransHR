@@ -397,7 +397,10 @@
                 [checked]="isManualEmployeeSelected(emp.id)"
                 (change)="toggleManualSelectEmployee(emp.id)"
               />
-              <span class="emp-info">{{ emp.id }} - {{ emp.name }}</span>
+              <span class="emp-info">
+                {{ emp.id }} - {{ emp.name }}
+                <span *ngIf="emp.isLocked" class="emp-lock-indicator" title="ロック状態">🔒</span>
+              </span>
               <span class="emp-current-dept" [ngStyle]="{ 'background-color': emp.assignedDept === 'Temp' ? 'rgba(142, 142, 147, 0.18)' : emp.assignedDept === 'A' ? 'rgba(0, 86, 210, 0.14)' : emp.assignedDept === 'B' ? 'rgba(52, 199, 89, 0.14)' : 'rgba(255, 149, 0, 0.14)' }">
                 {{ emp.assignedDept }}
               </span>
@@ -473,8 +476,18 @@
           <div class="manual-dept-body">
             <div *ngFor="let emp of deptAEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
               <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
-              <!-- 1段目：社員名 -->
-              <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+              <!-- 1段目：社員名 + ロック機能 -->
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+                <button
+                  type="button"
+                  class="emp-lock-btn"
+                  (click)="toggleLock(emp)"
+                  [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+                >
+                  {{ emp.isLocked ? '🔒' : '🔓' }}
+                </button>
+              </div>
               <!-- 2段目：スキル情報 -->
               <div class="emp-abilities">
                 <div [style.color]="isHighestSkill(emp, 'sales') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
@@ -494,15 +507,6 @@
                 <option value="C">C</option>
                 <option value="Temp">一時</option>
               </select>
-              <!-- 4段目：ロック機能 -->
-              <button
-                type="button"
-                class="emp-lock-btn"
-                (click)="toggleLock(emp)"
-                [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
-              >
-                {{ emp.isLocked ? '🔒' : '🔓' }}
-              </button>
             </div>
           </div>
         </div>
@@ -521,8 +525,18 @@
           <div class="manual-dept-body">
             <div *ngFor="let emp of deptBEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
               <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
-              <!-- 1段目：社員名 -->
-              <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+              <!-- 1段目：社員名 + ロック機能 -->
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+                <button
+                  type="button"
+                  class="emp-lock-btn"
+                  (click)="toggleLock(emp)"
+                  [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+                >
+                  {{ emp.isLocked ? '🔒' : '🔓' }}
+                </button>
+              </div>
               <!-- 2段目：スキル情報 -->
               <div class="emp-abilities">
                 <div [style.color]="isHighestSkill(emp, 'sales') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
@@ -542,15 +556,6 @@
                 <option value="C">C</option>
                 <option value="Temp">一時</option>
               </select>
-              <!-- 4段目：ロック機能 -->
-              <button
-                type="button"
-                class="emp-lock-btn"
-                (click)="toggleLock(emp)"
-                [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
-              >
-                {{ emp.isLocked ? '🔒' : '🔓' }}
-              </button>
             </div>
           </div>
         </div>
@@ -569,8 +574,18 @@
           <div class="manual-dept-body">
             <div *ngFor="let emp of deptCEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
               <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
-              <!-- 1段目：社員名 -->
-              <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+              <!-- 1段目：社員名 + ロック機能 -->
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+                <button
+                  type="button"
+                  class="emp-lock-btn"
+                  (click)="toggleLock(emp)"
+                  [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+                >
+                  {{ emp.isLocked ? '🔒' : '🔓' }}
+                </button>
+              </div>
               <!-- 2段目：スキル情報 -->
               <div class="emp-abilities">
                 <div [style.color]="isHighestSkill(emp, 'sales') ? '#0056d2' : 'var(--text-tertiary)'" [style.font-weight]="isHighestSkill(emp, 'sales') ? '600' : '400'">営{{ emp.salesPower.toFixed(1) }}</div>
@@ -590,15 +605,6 @@
                 <option value="C">C</option>
                 <option value="Temp">一時</option>
               </select>
-              <!-- 4段目：ロック機能 -->
-              <button
-                type="button"
-                class="emp-lock-btn"
-                (click)="toggleLock(emp)"
-                [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
-              >
-                {{ emp.isLocked ? '🔒' : '🔓' }}
-              </button>
             </div>
           </div>
         </div>
@@ -616,8 +622,18 @@
             </div>
             <div *ngFor="let emp of tempEmployees" class="employee-mini-card" [ngClass]="{ 'locked': emp.isLocked, 'candidate': emp.source === 'candidate' }">
               <span *ngIf="emp.source === 'candidate'" class="candidate-badge">採用予定</span>
-              <!-- 1段目：社員名 -->
-              <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+              <!-- 1段目：社員名 + ロック機能 -->
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="emp-id">{{ emp.id }} {{ emp.name }}</div>
+                <button
+                  type="button"
+                  class="emp-lock-btn"
+                  (click)="toggleLock(emp)"
+                  [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
+                >
+                  {{ emp.isLocked ? '🔒' : '🔓' }}
+                </button>
+              </div>
               <!-- 2段目：スキル情報 -->
               <div class="emp-abilities">
                 <div>営{{ emp.salesPower.toFixed(1) }}</div>
@@ -637,15 +653,6 @@
                 <option value="C">C</option>
                 <option value="Temp">一時</option>
               </select>
-              <!-- 4段目：ロック機能 -->
-              <button
-                type="button"
-                class="emp-lock-btn"
-                (click)="toggleLock(emp)"
-                [title]="emp.isLocked ? '配置場所をロック解除' : '配置場所をロック'"
-              >
-                {{ emp.isLocked ? '🔒' : '🔓' }}
-              </button>
             </div>
           </div>
         </div>

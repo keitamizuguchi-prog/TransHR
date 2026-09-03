@@ -473,12 +473,13 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-tile);
-      padding: 8px;
+      padding: 10px 12px;
       font-size: 10px;
       transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      position: relative;
     }
     .employee-mini-card:hover {
       border-color: var(--accent-primary);
@@ -504,20 +505,25 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
     .emp-id {
       font-weight: 700;
       color: var(--text-primary);
-      text-align: center;
       font-size: 10px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      flex: 1;
     }
     .emp-abilities {
       font-size: 9px;
       color: var(--text-secondary);
-      line-height: 1.2;
+      line-height: 1.1;
+      display: flex;
+      flex-direction: row;
+      gap: 2px;
+      justify-content: space-between;
     }
     .emp-select {
       width: 100%;
-      padding: 4px 6px;
+      padding: 3px 6px;
+      height: 32px;
       border: 1px solid var(--glass-border);
       border-radius: 3px;
       font-size: 9px;
@@ -526,20 +532,25 @@ ChartJS.register(BarController, BarElement, LineController, LineElement, PointEl
       color: var(--text-primary);
     }
     .emp-lock-btn {
-      width: 100%;
-      padding: 4px 6px;
-      border: 1px solid var(--glass-border);
-      border-radius: 3px;
-      background-color: var(--glass-bg-strong);
-      color: var(--text-primary);
-      font-size: 10px;
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      min-height: 24px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 14px;
       cursor: pointer;
-      margin-top: 4px;
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
     .emp-lock-btn:hover {
-      background-color: var(--glass-border-strong);
-      border-color: var(--text-tertiary);
+      background-color: rgba(0, 0, 0, 0.08);
+      border-radius: 4px;
     }
     /* 右側：一時置き場 */
     .right-section {
@@ -1447,6 +1458,13 @@ export class App implements OnInit, OnDestroy {
     const selectedIds = this.selectedForBulkMove();
     if (selectedIds.size === 0) return;
 
+    // ロック状態の社員が選択に含まれているか確認
+    const lockedEmployees = this.employees().filter(emp => selectedIds.has(emp.id) && emp.isLocked);
+    if (lockedEmployees.length > 0) {
+      this.showToast('ロックされた従業員が含まれています。ロック状態を解除してから移動してください。');
+      return;
+    }
+
     // 配置変更前の状態を保存（ロールバック用・差分表示用）
     const previousEmployees = [...this.employees()];
     const stateBefore = this.simulationResult();
@@ -1762,6 +1780,13 @@ export class App implements OnInit, OnDestroy {
     const target = event.target as HTMLSelectElement;
     const newDept = target?.value || '';
     if (!newDept) return;
+
+    // ロック状態の社員は移動を防止
+    if (employee.isLocked) {
+      this.showToast('ロックされた従業員です。ロック状態を解除してから移動してください。');
+      target.value = employee.assignedDept;
+      return;
+    }
 
     const previousDept = employee.assignedDept;
 

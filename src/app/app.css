@@ -664,6 +664,15 @@
   flex: 1;
   color: var(--text-primary);
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.emp-lock-indicator {
+  font-size: 11px;
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 
 .emp-current-dept {
