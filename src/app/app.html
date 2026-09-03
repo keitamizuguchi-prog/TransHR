@@ -1112,11 +1112,11 @@
               <tbody>
                 <tr *ngFor="let result of matrixComparisonResults()">
                   <td class="objective-name">{{ result.objectiveName }}</td>
-                  <td class="placement-cell">{{ result.beforePlacement }}</td>
+                  <td class="placement-cell" [title]="result.beforePlacement">{{ result.beforePlacement }}</td>
                   <td>{{ result.beforeTotalSales | number:'1.2-2' }}</td>
                   <td>{{ result.beforeTotalProfit | number:'1.2-2' }}</td>
                   <td>{{ result.beforePerCapitaProfit | number:'1.0-0' }}</td>
-                  <td class="placement-cell">{{ result.afterPlacement }}</td>
+                  <td class="placement-cell" [title]="result.afterPlacement">{{ result.afterPlacement }}</td>
                   <td>{{ result.afterTotalSales | number:'1.2-2' }}</td>
                   <td>{{ result.afterTotalProfit | number:'1.2-2' }}</td>
                   <td>{{ result.afterPerCapitaProfit | number:'1.0-0' }}</td>
