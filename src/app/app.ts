@@ -1942,6 +1942,9 @@ export class App implements OnInit, OnDestroy {
     this.isProcessing.set(true);
 
     setTimeout(() => {
+      // 再計算前の状態を保存（差分表示用）
+      const stateBefore = this.simulationResult();
+
       // ロック済み社員は現在の事業部を固定変数として維持し、
       // 未ロック社員のみを対象に「全社売上最大化」で最適化を実行
       const optimizedEmployees = this.calculatorService.optimizePlacement(
@@ -1960,7 +1963,7 @@ export class App implements OnInit, OnDestroy {
 
       // シミュレーション結果とKPIを即座に反映
       this.updateSimulation();
-      this.previousSimulationResult.set(this.simulationResult());
+      this.previousSimulationResult.set(stateBefore);
 
       // 説明テキストを生成
       const explanation = this.calculatorService.generateOptimizationExplanation(
