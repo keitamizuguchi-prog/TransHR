@@ -1031,13 +1031,19 @@ export class App implements OnInit, OnDestroy {
   });
   protected matrixChartOptions: ChartOptions<'bar'> = {
     responsive: true,
-    maintainAspectRatio: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
         labels: {
           color: '#1d1d1f',
+          padding: 12,
+          font: {
+            size: 12,
+            weight: 'bold',
+          },
         },
+        align: 'center',
       },
       tooltip: {
         callbacks: {
@@ -1061,12 +1067,21 @@ export class App implements OnInit, OnDestroy {
         },
         color: '#1d1d1f',
         font: {
-          size: 12,
+          size: 10,
           weight: 'bold',
         },
         anchor: 'end',
         align: 'top',
-        offset: 10,
+        offset: 6,
+        clamp: true,
+      },
+    },
+    layout: {
+      padding: {
+        top: 8,
+        right: 20,
+        bottom: 8,
+        left: 20,
       },
     },
     scales: {
@@ -1076,9 +1091,17 @@ export class App implements OnInit, OnDestroy {
           display: true,
           text: '課題',
           color: '#86868b',
+          font: {
+            size: 11,
+            weight: 'bold',
+          },
+          padding: 8,
         },
         ticks: {
           color: '#86868b',
+          font: {
+            size: 10,
+          },
         },
         grid: {
           color: 'rgba(0, 0, 0, 0.08)',
@@ -1092,9 +1115,17 @@ export class App implements OnInit, OnDestroy {
           display: true,
           text: '売上・利益差分(億円)',
           color: '#86868b',
+          font: {
+            size: 10,
+            weight: 'bold',
+          },
+          padding: 8,
         },
         ticks: {
           color: '#86868b',
+          font: {
+            size: 10,
+          },
         },
         grid: {
           drawOnChartArea: true,
@@ -1109,10 +1140,18 @@ export class App implements OnInit, OnDestroy {
           display: true,
           text: '一人あたり利益差分(万円)',
           color: '#86868b',
+          font: {
+            size: 10,
+            weight: 'bold',
+          },
+          padding: 8,
         },
         beginAtZero: true,
         ticks: {
           color: '#86868b',
+          font: {
+            size: 10,
+          },
         },
         grid: {
           drawOnChartArea: false,

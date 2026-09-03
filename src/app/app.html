@@ -1063,74 +1063,78 @@
     </div>
 
     <!-- 採用前後比較画面 -->
-    <div class="comparison-sections" *ngIf="currentScreen() === 'matrix'" style="flex: 1;">
-      <div class="comparison-section" *ngIf="matrixComparisonResults().length === 0">
+    <div class="matrix-comparison-wrapper" *ngIf="currentScreen() === 'matrix'">
+      <div class="matrix-loading" *ngIf="matrixComparisonResults().length === 0">
         <p>計算中...</p>
       </div>
-      <div class="comparison-section" *ngIf="matrixComparisonResults().length > 0">
-        <!-- 差分グラフ -->
-        <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0; font-weight: 600;">売上・利益差分の可視化</h3>
-          <canvas
-            baseChart
-            [type]="'bar'"
-            [data]="matrixChartData()"
-            [options]="matrixChartOptions"
-            [aria-label]="'採用前後の売上差分と利益差分を示す横棒グラフ。各課題における採用による収益への影響を比較します。'"
-            style="max-height: 350px; min-height: 250px;"
-          ></canvas>
+      <ng-container *ngIf="matrixComparisonResults().length > 0">
+        <!-- グラフエリア（約60%） -->
+        <div class="matrix-chart-container">
+          <h3 class="matrix-chart-title">売上・利益差分の可視化</h3>
+          <div class="matrix-chart-inner">
+            <canvas
+              baseChart
+              [type]="'bar'"
+              [data]="matrixChartData()"
+              [options]="matrixChartOptions"
+              [aria-label]="'採用前後の売上差分と利益差分を示す横棒グラフ。各課題における採用による収益への影響を比較します。'"
+            ></canvas>
+          </div>
         </div>
 
-        <h2 class="section-title">採用前後結果比較</h2>
-        <div class="comparison-table-wrapper">
-          <table class="comparison-table">
-            <thead>
-              <tr>
-                <th style="text-align: left;">課題</th>
-                <th colspan="4">採用前</th>
-                <th colspan="4">採用後</th>
-                <th colspan="3">差分</th>
-              </tr>
-              <tr>
-                <th style="text-align: left;"></th>
-                <th>人数配置</th>
-                <th>全社売上(億円)</th>
-                <th>全社利益(億円)</th>
-                <th>一人あたり利益(万円)</th>
-                <th>人数配置</th>
-                <th>全社売上(億円)</th>
-                <th>全社利益(億円)</th>
-                <th>一人あたり利益(万円)</th>
-                <th>売上差分(億円)</th>
-                <th>利益差分(億円)</th>
-                <th>一人あたり利益差分(万円)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let result of matrixComparisonResults()">
-                <td class="objective-name">{{ result.objectiveName }}</td>
-                <td>{{ result.beforePlacement }}</td>
-                <td>{{ result.beforeTotalSales | number:'1.2-2' }}</td>
-                <td>{{ result.beforeTotalProfit | number:'1.2-2' }}</td>
-                <td>{{ result.beforePerCapitaProfit | number:'1.0-0' }}</td>
-                <td>{{ result.afterPlacement }}</td>
-                <td>{{ result.afterTotalSales | number:'1.2-2' }}</td>
-                <td>{{ result.afterTotalProfit | number:'1.2-2' }}</td>
-                <td>{{ result.afterPerCapitaProfit | number:'1.0-0' }}</td>
-                <td [ngStyle]="{ 'color': result.salesDiff > 0 ? '#34c759' : '#ff3b30' }">
-                  {{ result.salesDiff | number:'1.2-2' }}
-                </td>
-                <td [ngStyle]="{ 'color': result.profitDiff > 0 ? '#34c759' : '#ff3b30' }">
-                  {{ result.profitDiff | number:'1.2-2' }}
-                </td>
-                <td [ngStyle]="{ 'color': result.perCapitaProfitDiff > 0 ? '#34c759' : '#ff3b30', 'font-weight': result.perCapitaProfitDiff < 0 ? '700' : '400' }">
-                  {{ result.perCapitaProfitDiff | number:'1.0-0' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- 表エリア（約40%） -->
+        <div class="matrix-table-container">
+          <h2 class="matrix-table-title">採用前後結果比較</h2>
+          <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th style="text-align: left;">課題</th>
+                  <th colspan="4">採用前</th>
+                  <th colspan="4">採用後</th>
+                  <th colspan="3">差分</th>
+                </tr>
+                <tr>
+                  <th style="text-align: left;"></th>
+                  <th>人数配置(A:○, B:○...)</th>
+                  <th>全社売上(億)</th>
+                  <th>全社利益(億)</th>
+                  <th>一人利益(万)</th>
+                  <th>人数配置(A:○, B:○...)</th>
+                  <th>全社売上(億)</th>
+                  <th>全社利益(億)</th>
+                  <th>一人利益(万)</th>
+                  <th>売上差(億)</th>
+                  <th>利益差(億)</th>
+                  <th>一人利益差(万)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let result of matrixComparisonResults()">
+                  <td class="objective-name">{{ result.objectiveName }}</td>
+                  <td class="placement-cell">{{ result.beforePlacement }}</td>
+                  <td>{{ result.beforeTotalSales | number:'1.2-2' }}</td>
+                  <td>{{ result.beforeTotalProfit | number:'1.2-2' }}</td>
+                  <td>{{ result.beforePerCapitaProfit | number:'1.0-0' }}</td>
+                  <td class="placement-cell">{{ result.afterPlacement }}</td>
+                  <td>{{ result.afterTotalSales | number:'1.2-2' }}</td>
+                  <td>{{ result.afterTotalProfit | number:'1.2-2' }}</td>
+                  <td>{{ result.afterPerCapitaProfit | number:'1.0-0' }}</td>
+                  <td [ngStyle]="{ 'color': result.salesDiff > 0 ? '#34c759' : '#ff3b30' }">
+                    {{ result.salesDiff | number:'1.2-2' }}
+                  </td>
+                  <td [ngStyle]="{ 'color': result.profitDiff > 0 ? '#34c759' : '#ff3b30' }">
+                    {{ result.profitDiff | number:'1.2-2' }}
+                  </td>
+                  <td [ngStyle]="{ 'color': result.perCapitaProfitDiff > 0 ? '#34c759' : '#ff3b30', 'font-weight': result.perCapitaProfitDiff < 0 ? '700' : '400' }">
+                    {{ result.perCapitaProfitDiff | number:'1.0-0' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      </ng-container>
     </div>
   </ng-container>
 
