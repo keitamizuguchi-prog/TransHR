@@ -1088,14 +1088,7 @@ export class App implements OnInit, OnDestroy {
       x: {
         type: 'category',
         title: {
-          display: true,
-          text: '課題',
-          color: '#86868b',
-          font: {
-            size: 11,
-            weight: 'bold',
-          },
-          padding: 8,
+          display: false,
         },
         ticks: {
           color: '#86868b',
