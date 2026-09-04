@@ -1054,7 +1054,7 @@ export class App implements OnInit, OnDestroy {
           row('A事業部', left.deptA.headcount, right.deptA.headcount, '名', 0, true),
           row('B事業部', left.deptB.headcount, right.deptB.headcount, '名', 0, true),
           row('C事業部', left.deptC.headcount, right.deptC.headcount, '名', 0, true),
-          row('未配置', left.unplacedCount, right.unplacedCount, '名', 0, false),
+          row('未配置', left.unplacedCount, right.unplacedCount, '名', 0, true),
         ],
       },
       {
@@ -1147,7 +1147,7 @@ export class App implements OnInit, OnDestroy {
       }
 
       return true;
-    });
+    }).sort((a, b) => a.id.localeCompare(b.id));
   });
 
   // ロックされた社員が1人でも存在するか（固定条件での再計算ボタン表示制御）
@@ -2826,7 +2826,8 @@ export class App implements OnInit, OnDestroy {
     // 人材配置一覧
     rows.push('人材配置一覧');
     rows.push('ID,氏名,営業力,管理力,開拓力,育成力,人件費,配置先');
-    for (const emp of this.employees()) {
+    const sortedEmployees = [...this.employees()].sort((a, b) => a.id.localeCompare(b.id));
+    for (const emp of sortedEmployees) {
       rows.push(
         `${emp.id},${emp.name},${emp.salesPower.toFixed(1)},${emp.managementPower.toFixed(1)},${emp.pioneeringPower.toFixed(1)},${emp.trainingPower.toFixed(1)},${emp.laborCost},${emp.assignedDept}`
       );
@@ -2909,7 +2910,8 @@ export class App implements OnInit, OnDestroy {
     // 人材配置一覧
     rows.push('人材配置一覧');
     rows.push('ID,氏名,営業力,管理力,開拓力,育成力,人件費,配置先,ロック状態');
-    for (const emp of this.employees()) {
+    const sortedEmployees = [...this.employees()].sort((a, b) => a.id.localeCompare(b.id));
+    for (const emp of sortedEmployees) {
       rows.push(
         `${emp.id},${emp.name},${emp.salesPower.toFixed(1)},${emp.managementPower.toFixed(1)},${emp.pioneeringPower.toFixed(1)},${emp.trainingPower.toFixed(1)},${emp.laborCost},${emp.assignedDept},${emp.isLocked ? 'ロック中' : ''}`
       );
