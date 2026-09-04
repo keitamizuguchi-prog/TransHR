@@ -957,11 +957,17 @@ export class App implements OnInit, OnDestroy {
   protected currentScreen = signal<'dashboard' | 'objective' | 'matrix' | 'manual' | 'planComparison'>('dashboard');
   protected tempPanelOpen = signal<boolean>(true);
 
+  // テンプレートダウンロード
+  protected templateDownloadModalOpen = signal<boolean>(false);
+  protected templateFileName = signal<string>('template');
+  protected templateRowCount = signal<number>(100);
+
   // サイドバー・配置案スナップショット管理
   private static readonly SNAPSHOT_STORAGE_KEY = 'transhr_placement_snapshots';
   protected sidebarOpen = signal<boolean>(false);
   protected savedPlansExpanded = signal<boolean>(false);
   protected savedSnapshots = signal<PlacementSnapshot[]>([]);
+  protected isViewingSavedPlan = signal<boolean>(false);
 
   // 保存案比較タブ用
   protected planComparisonLeftId = signal<string>('');
@@ -1528,6 +1534,9 @@ export class App implements OnInit, OnDestroy {
     // 復元直後から差分を表示するために、復元後の状態を基準とする
     this.previousSimulationResult.set(this.simulationResult());
 
+    // 一時保存案の反映状態をマーク
+    this.isViewingSavedPlan.set(true);
+
     this.showToast(`配置案「${snapshot.name}」を復元しました`, 'success');
   }
 
@@ -1817,6 +1826,18 @@ export class App implements OnInit, OnDestroy {
     const file = event.target?.files?.[0];
     if (!file) return;
 
+    // 一時保存案が反映されている場合は確認ダイアログを表示
+    if (this.isViewingSavedPlan()) {
+      const confirmed = window.confirm('一時保存案が反映されています。新しいファイルを読み込むと現在表示中の案はクリアされますが、続行しますか？');
+      if (!confirmed) {
+        // キャンセル時：状態をクリアしない、input値をリセット
+        event.target.value = '';
+        return;
+      }
+      // OK時：一時保存案の反映状態をクリア
+      this.isViewingSavedPlan.set(false);
+    }
+
     const fileName = file.name;
 
     if (this.additionalFileName() !== '' && fileName === this.additionalFileName()) {
@@ -1874,6 +1895,7 @@ export class App implements OnInit, OnDestroy {
     this.objectiveComparisonResults.set([]);
     this.matrixComparisonResults.set([]);
     this.optimizationExecuted.set(false);
+    this.isViewingSavedPlan.set(false);
   }
 
   clearCandidateFile(): void {
@@ -1895,12 +1917,25 @@ export class App implements OnInit, OnDestroy {
     this.matrixComparisonResults.set([]);
     this.objectiveComparisonResultsWithAdditional.set([]);
     this.optimizationExecuted.set(false);
+    this.isViewingSavedPlan.set(false);
     this.updateSimulation();
   }
 
   onAdditionalFileSelected(event: any): void {
     const file = event.target?.files?.[0];
     if (!file) return;
+
+    // 一時保存案が反映されている場合は確認ダイアログを表示
+    if (this.isViewingSavedPlan()) {
+      const confirmed = window.confirm('一時保存案が反映されています。新しいファイルを読み込むと現在表示中の案はクリアされますが、続行しますか？');
+      if (!confirmed) {
+        // キャンセル時：状態をクリアしない、input値をリセット
+        event.target.value = '';
+        return;
+      }
+      // OK時：一時保存案の反映状態をクリア
+      this.isViewingSavedPlan.set(false);
+    }
 
     const fileName = file.name;
 
@@ -2686,6 +2721,50 @@ export class App implements OnInit, OnDestroy {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  openTemplateDownloadModal(): void {
+    this.templateDownloadModalOpen.set(true);
+  }
+
+  closeTemplateDownloadModal(): void {
+    this.templateDownloadModalOpen.set(false);
+    this.templateFileName.set('template');
+    this.templateRowCount.set(100);
+  }
+
+  onTemplateRowCountChange(value: string): void {
+    const parsed = parseInt(value, 10);
+    if (!isNaN(parsed)) {
+      this.templateRowCount.set(parsed);
+    }
+  }
+
+  generateAndDownloadTemplate(): void {
+    const fileName = this.templateFileName().trim() || 'template';
+    const rowCount = this.templateRowCount();
+
+    if (rowCount < 1 || rowCount > 1000) {
+      alert('人数は1〜1000の間で入力してください');
+      return;
+    }
+
+    const csvContent = this.generateCSVTemplate(rowCount);
+    this.downloadCsv(csvContent, `${fileName}.csv`);
+    this.closeTemplateDownloadModal();
+    this.showToast('テンプレートをダウンロードしました', 'success');
+  }
+
+  private generateCSVTemplate(rowCount: number): string {
+    const headers = ['ID', '氏名', '営業力', '管理力', '開拓力', '育成力', '人件費'];
+    const rows: string[] = [headers.join(',')];
+
+    for (let i = 1; i <= rowCount; i++) {
+      const emptyRow = headers.map(() => '').join(',');
+      rows.push(emptyRow);
+    }
+
+    return rows.join('\n');
   }
 
   private parseCSV(csvText: string): { employees: Employee[]; error?: string } {

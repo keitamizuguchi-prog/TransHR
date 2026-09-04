@@ -35,7 +35,7 @@
         <div class="sidebar-group">
           <button type="button" class="sidebar-menu-item" (click)="toggleSavedPlans()">
             <span class="sidebar-menu-icon">{{ savedPlansExpanded() ? '▼' : '▶' }}</span>
-            <span class="sidebar-menu-label">💾 保存した配置案</span>
+            <span class="sidebar-menu-label">💾 配置案を一時保存</span>
             <span *ngIf="savedSnapshots().length > 0" class="sidebar-menu-badge">{{ savedSnapshots().length }}</span>
           </button>
 
@@ -77,6 +77,14 @@
             <span class="sidebar-menu-label">📋 テンプレート管理</span>
             <span class="sidebar-menu-soon">近日公開</span>
           </button>
+        </div>
+
+        <!-- お問い合わせ -->
+        <div class="sidebar-group">
+          <a href="mailto:keita.mizuguchi@pathoslogos.co.jp?subject=【TransHR】シミュレーターに関するお問い合わせ" class="sidebar-menu-item">
+            <span class="sidebar-menu-icon">📧</span>
+            <span class="sidebar-menu-label">お問い合わせ</span>
+          </a>
         </div>
       </nav>
     </aside>
@@ -133,6 +141,12 @@
           </button>
         </div>
         <div class="header-right">
+          <button
+            (click)="openTemplateDownloadModal()"
+            class="header-button header-button-secondary"
+          >
+            テンプレートDL
+          </button>
           <button
             *ngIf="employees().length > 0"
             (click)="exportPlacementToCsv()"
@@ -1292,6 +1306,75 @@
       <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
         <button (click)="closeAlertModal()" style="padding: 8px 16px; background: #0056d2; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">
           閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- テンプレートダウンロードモーダル -->
+  <div *ngIf="templateDownloadModalOpen()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-card); padding: 24px; max-width: 400px; box-shadow: var(--glass-shadow); width: 90%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-strong);">テンプレートダウンロード</h2>
+        <button (click)="closeTemplateDownloadModal()" style="background: none; border: none; cursor: pointer; font-size: 24px; color: var(--text-tertiary);">×</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- ファイル名入力 -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="template-filename" style="font-size: 13px; font-weight: 600; color: var(--text-strong);">ファイル名</label>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <input
+              id="template-filename"
+              type="text"
+              [value]="templateFileName()"
+              (input)="templateFileName.set($event.target!.value)"
+              placeholder="template"
+              style="flex: 1; padding: 8px 12px; border: 1px solid var(--glass-border); border-radius: 6px; font-size: 13px; background-color: var(--glass-bg-strong); color: var(--text-primary);"
+            />
+            <span style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">.csv</span>
+          </div>
+          <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-tertiary);">※ 拡張子 .csv は自動で付与されます</p>
+        </div>
+
+        <!-- 人数入力 -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="template-rowcount" style="font-size: 13px; font-weight: 600; color: var(--text-strong);">人数（行数）</label>
+          <input
+            id="template-rowcount"
+            type="number"
+            [value]="templateRowCount()"
+            (input)="onTemplateRowCountChange($event.target!.value)"
+            min="1"
+            max="1000"
+            style="padding: 8px 12px; border: 1px solid var(--glass-border); border-radius: 6px; font-size: 13px; background-color: var(--glass-bg-strong); color: var(--text-primary);"
+          />
+          <p style="margin: 4px 0 0 0; font-size: 11px; color: var(--text-tertiary);">※ 1 ～ 1000 の範囲で入力してください</p>
+        </div>
+
+        <!-- 入力例の表示 -->
+        <div style="padding: 12px; background-color: var(--glass-bg-soft); border-radius: 6px; border-left: 3px solid var(--accent-primary);">
+          <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: var(--text-strong);">CSVファイルの形式:</p>
+          <p style="margin: 0; font-size: 11px; color: var(--text-secondary); font-family: monospace; line-height: 1.6;">
+            ID,氏名,営業力,管理力,開拓力,育成力,人件費<br>
+            (空の行が{{ templateRowCount() }}行分生成されます)
+          </p>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px;">
+        <button
+          (click)="closeTemplateDownloadModal()"
+          style="padding: 8px 16px; background: var(--glass-bg-strong); color: var(--text-primary); border: 1px solid var(--glass-border); border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s ease;"
+        >
+          キャンセル
+        </button>
+        <button
+          (click)="generateAndDownloadTemplate()"
+          [disabled]="templateRowCount() < 1 || templateRowCount() > 1000"
+          style="padding: 8px 16px; background: var(--accent-positive); color: #ffffff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s ease;"
+        >
+          ダウンロード
         </button>
       </div>
     </div>
