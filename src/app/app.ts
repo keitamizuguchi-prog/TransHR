@@ -2240,21 +2240,20 @@ export class App implements OnInit, OnDestroy {
     }, 100);
   }
 
-  // ロックされた社員を固定制約として、未ロック社員のみ全社売上最大化で再計算
+  // 固定条件で最適配置を再計算
+  // ロック済み従業員がいる場合はロック保持、いない場合は全員最適化
   runOptimizationWithLocks(): void {
-    if (!this.hasLockedEmployees()) return;
-
     this.isProcessing.set(true);
 
     setTimeout(() => {
       const stateBefore = this.simulationResult();
+      const hasLocked = this.hasLockedEmployees();
 
       // ロック済み従業員の配置は保持、未ロック従業員は Temp にリセット
-      // これにより、ロック済み従業員に配置枠を奪われず、
-      // 未ロック従業員が各事業部に最適に配置される
+      // ロック済み従業員がいない場合は全員を Temp にリセット
       const employeesForOptimization = this.employees().map(emp => ({
         ...emp,
-        assignedDept: emp.isLocked ? emp.assignedDept : ('Temp' as any)
+        assignedDept: hasLocked && emp.isLocked ? emp.assignedDept : ('Temp' as any)
       }));
 
       const optimizedEmployees = this.calculatorService.optimizePlacement(
@@ -2262,7 +2261,13 @@ export class App implements OnInit, OnDestroy {
         'totalSales'
       );
 
-      const customReason = '【固定条件での再計算】ロックされた社員を現在の事業部に固定したまま、未ロック社員のみを対象に全社売上が最大となる配置を算出しました。';
+      let customReason: string;
+      if (hasLocked) {
+        customReason = '【固定条件での再計算】ロックされた社員を現在の事業部に固定したまま、未ロック社員のみを対象に全社売上が最大となる配置を算出しました。';
+      } else {
+        customReason = '【手動調整から再計算】全社売上が最大となる人員配置を算出しました。';
+      }
+
       this.applyOptimizationResult(optimizedEmployees, 'totalSales', false, customReason);
 
       this.previousSimulationResult.set(stateBefore);
