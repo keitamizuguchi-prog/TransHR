@@ -250,20 +250,20 @@
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 16px;
-  overflow-x: auto;
+  gap: 12px;
+  overflow-x: hidden;
   width: 100%;
   flex: 1;
-  padding: 12px;
+  padding: 8px;
   min-height: 0;
   align-items: stretch;
 }
 
 /* 各事業部カラム - 堅牢なFlexbox構造 */
 .dept-card-manual {
-  flex: 1 0 auto;
-  min-width: 300px;
-  max-width: 400px;
+  flex: 1 1 auto;
+  min-width: 240px;
+  max-width: 350px;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -439,7 +439,8 @@
 .candidate-badge {
   position: absolute;
   top: 6px;
-  left: 6px;
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--accent-positive);
   color: #ffffff;
   font-size: 8px;
@@ -1590,4 +1591,168 @@
   font-weight: 600;
   color: var(--text-strong);
   flex-shrink: 0;
+}
+
+/* ===== 保存案比較タブ ===== */
+.plan-comparison-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-page);
+}
+
+/* Sticky サマリー領域 */
+.plan-comparison-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #ffffff;
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.plan-comparison-header-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px 22px;
+  min-width: 0;
+}
+
+.plan-comparison-header-left {
+  border-right: 1px solid var(--glass-border);
+}
+
+.plan-comparison-select {
+  width: 100%;
+  max-width: 320px;
+}
+
+.plan-comparison-kpi-group {
+  display: flex;
+  gap: 32px;
+}
+
+.plan-comparison-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 110px;
+}
+
+.plan-comparison-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.plan-comparison-kpi-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-strong);
+  line-height: 1;
+}
+
+.plan-comparison-kpi-value.winner {
+  color: #52b788;
+}
+
+.plan-comparison-kpi-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.plan-comparison-placeholder {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  padding: 22px 0 4px;
+}
+
+/* 詳細データ本体 */
+.plan-comparison-body {
+  padding-bottom: 40px;
+}
+
+.plan-comparison-section {
+  margin-top: 16px;
+}
+
+.plan-comparison-section-title {
+  margin: 0;
+  padding: 8px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--glass-bg-soft);
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.plan-comparison-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.plan-comparison-row:not(:last-child) {
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.plan-comparison-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  text-align: center;
+  transition: background-color 0.15s ease;
+}
+
+.plan-comparison-cell-left {
+  border-right: 1px solid var(--glass-border);
+}
+
+.plan-comparison-row-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.plan-comparison-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.plan-comparison-cell.winner .plan-comparison-value {
+  color: #52b788;
+}
+
+.plan-comparison-unit {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.winner-arrow {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.plan-comparison-empty-body {
+  padding: 60px 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-tertiary);
 }

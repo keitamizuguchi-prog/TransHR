@@ -14,6 +14,20 @@ import Plugin from 'chartjs-plugin-datalabels';
 
 ChartJS.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, ArcElement, Plugin);
 
+interface PlanComparisonRow {
+  label: string;
+  leftValue: number;
+  rightValue: number;
+  unit: string;
+  decimals: number;
+  winner: 'left' | 'right' | null;
+}
+
+interface PlanComparisonSection {
+  title: string;
+  rows: PlanComparisonRow[];
+}
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule, BaseChartDirective],
@@ -940,7 +954,7 @@ export class App implements OnInit, OnDestroy {
   protected minTotalSales = MIN_TOTAL_SALES;
   protected selectedObjective: OptimizationObjective = 'totalSales';
   protected optimizationReason: string = '';
-  protected currentScreen = signal<'dashboard' | 'objective' | 'matrix' | 'manual'>('dashboard');
+  protected currentScreen = signal<'dashboard' | 'objective' | 'matrix' | 'manual' | 'planComparison'>('dashboard');
   protected tempPanelOpen = signal<boolean>(true);
 
   // サイドバー・配置案スナップショット管理
@@ -948,6 +962,98 @@ export class App implements OnInit, OnDestroy {
   protected sidebarOpen = signal<boolean>(false);
   protected savedPlansExpanded = signal<boolean>(false);
   protected savedSnapshots = signal<PlacementSnapshot[]>([]);
+
+  // 保存案比較タブ用
+  protected planComparisonLeftId = signal<string>('');
+  protected planComparisonRightId = signal<string>('');
+
+  protected planComparisonLeftSnapshot = computed<PlacementSnapshot | null>(() => {
+    const id = this.planComparisonLeftId();
+    return this.savedSnapshots().find(s => s.id === id) ?? null;
+  });
+
+  protected planComparisonRightSnapshot = computed<PlacementSnapshot | null>(() => {
+    const id = this.planComparisonRightId();
+    return this.savedSnapshots().find(s => s.id === id) ?? null;
+  });
+
+  protected planComparisonLeftResult = computed<SimulationResult | null>(() => {
+    const snapshot = this.planComparisonLeftSnapshot();
+    return snapshot ? this.calculatorService.calculateTotalSimulation(snapshot.employees) : null;
+  });
+
+  protected planComparisonRightResult = computed<SimulationResult | null>(() => {
+    const snapshot = this.planComparisonRightSnapshot();
+    return snapshot ? this.calculatorService.calculateTotalSimulation(snapshot.employees) : null;
+  });
+
+  protected planComparisonKpiWinner = computed<{ sales: 'left' | 'right' | null; profit: 'left' | 'right' | null } | null>(() => {
+    const left = this.planComparisonLeftResult();
+    const right = this.planComparisonRightResult();
+    if (!left || !right) return null;
+    return {
+      sales: this.getComparisonWinner(left.totalSales, right.totalSales, true),
+      profit: this.getComparisonWinner(left.totalProfit, right.totalProfit, true),
+    };
+  });
+
+  protected planComparisonSections = computed<PlanComparisonSection[]>(() => {
+    const left = this.planComparisonLeftResult();
+    const right = this.planComparisonRightResult();
+    if (!left || !right) return [];
+
+    const row = (
+      label: string,
+      leftValue: number,
+      rightValue: number,
+      unit: string,
+      decimals: number,
+      higherIsBetter: boolean
+    ): PlanComparisonRow => ({
+      label,
+      leftValue,
+      rightValue,
+      unit,
+      decimals,
+      winner: this.getComparisonWinner(leftValue, rightValue, higherIsBetter),
+    });
+
+    return [
+      {
+        title: '事業部別 人数配置',
+        rows: [
+          row('A事業部', left.deptA.headcount, right.deptA.headcount, '名', 0, true),
+          row('B事業部', left.deptB.headcount, right.deptB.headcount, '名', 0, true),
+          row('C事業部', left.deptC.headcount, right.deptC.headcount, '名', 0, true),
+          row('未配置', left.unplacedCount, right.unplacedCount, '名', 0, false),
+        ],
+      },
+      {
+        title: '事業部別 売上',
+        rows: [
+          row('A事業部', left.deptA.finalSales, right.deptA.finalSales, '億円', 2, true),
+          row('B事業部', left.deptB.finalSales, right.deptB.finalSales, '億円', 2, true),
+          row('C事業部', left.deptC.finalSales, right.deptC.finalSales, '億円', 2, true),
+        ],
+      },
+      {
+        title: '事業部別 利益',
+        rows: [
+          row('A事業部', left.deptA.profit, right.deptA.profit, '億円', 2, true),
+          row('B事業部', left.deptB.profit, right.deptB.profit, '億円', 2, true),
+          row('C事業部', left.deptC.profit, right.deptC.profit, '億円', 2, true),
+        ],
+      },
+      {
+        title: '全社指標',
+        rows: [
+          row('総コスト', left.totalCost, right.totalCost, '億円', 2, false),
+          row('一人あたり利益', left.perCapitaProfit, right.perCapitaProfit, '万円', 0, true),
+          row('総人数', left.totalHeadcount, right.totalHeadcount, '名', 0, true),
+        ],
+      },
+    ];
+  });
 
   // 従業員一括配置管理
   employeeSearchQuery: string = '';
@@ -968,6 +1074,8 @@ export class App implements OnInit, OnDestroy {
   manualFilterDept = signal<string>('');
   manualFilterSkillType = signal<'' | 'sales' | 'management' | 'pioneering' | 'training'>('');
   manualFilterSkillValue = signal<number>(0);
+  manualFilterLocked = signal<boolean>(false);
+  manualFilterCandidate = signal<boolean>(false);
 
   private static readonly SKILL_FIELD_MAP: Record<string, keyof Employee> = {
     sales: 'salesPower',
@@ -981,6 +1089,8 @@ export class App implements OnInit, OnDestroy {
     const filterDept = this.manualFilterDept();
     const filterSkillType = this.manualFilterSkillType();
     const filterSkillValue = this.manualFilterSkillValue();
+    const filterLocked = this.manualFilterLocked();
+    const filterCandidate = this.manualFilterCandidate();
 
     return this.employees().filter(emp => {
       if (query && !emp.id.toLowerCase().includes(query) && !emp.name.toLowerCase().includes(query)) {
@@ -997,6 +1107,14 @@ export class App implements OnInit, OnDestroy {
         if (skillValue < filterSkillValue) {
           return false;
         }
+      }
+
+      if (filterLocked && !emp.isLocked) {
+        return false;
+      }
+
+      if (filterCandidate && emp.source !== 'candidate') {
+        return false;
       }
 
       return true;
@@ -1456,6 +1574,24 @@ export class App implements OnInit, OnDestroy {
     this.previousSimulationResult.set(this.simulationResult());
   }
 
+  goToPlanComparison(): void {
+    this.currentScreen.set('planComparison');
+  }
+
+  private getComparisonWinner(
+    leftValue: number,
+    rightValue: number,
+    higherIsBetter: boolean
+  ): 'left' | 'right' | null {
+    if (leftValue === rightValue) return null;
+    const leftIsHigher = leftValue > rightValue;
+    return (higherIsBetter ? leftIsHigher : !leftIsHigher) ? 'left' : 'right';
+  }
+
+  protected decimalFormat(decimals: number): string {
+    return `1.${decimals}-${decimals}`;
+  }
+
   toggleManualSearchPanel(): void {
     this.manualSearchPanelOpen.update(v => !v);
     console.log('toggleManualSearchPanel called, new state:', this.manualSearchPanelOpen());
@@ -1574,12 +1710,16 @@ export class App implements OnInit, OnDestroy {
     this.manualFilterDept.set('');
     this.manualFilterSkillType.set('');
     this.manualFilterSkillValue.set(0);
+    this.manualFilterLocked.set(false);
+    this.manualFilterCandidate.set(false);
   }
 
   clearManualFilters(): void {
     this.manualFilterDept.set('');
     this.manualFilterSkillType.set('');
     this.manualFilterSkillValue.set(0);
+    this.manualFilterLocked.set(false);
+    this.manualFilterCandidate.set(false);
   }
 
   private setupActivityListener(): void {
