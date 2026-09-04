@@ -127,7 +127,8 @@
             class="header-tab"
             [class.active]="currentScreen() === 'matrix'"
             (click)="goToMatrixComparison()"
-            [disabled]="isProcessing()"
+            [disabled]="isProcessing() || !additionalFileLoaded()"
+            [title]="!additionalFileLoaded() ? '採用前後比較は採用予定データが必要です' : ''"
           >
             採用前後比較
           </button>
@@ -1017,8 +1018,8 @@
         <p>計算中...</p>
       </div>
       <div class="comparison-section" *ngIf="objectiveComparisonResults().length > 0">
-        <!-- データソース切替（常に表示） -->
-        <div style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center;">
+        <!-- データソース切替（採用予定データがある場合のみ表示） -->
+        <div *ngIf="additionalFileLoaded()" style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center;">
           <span style="font-weight: 600; font-size: 13px;">グラフデータ:</span>
           <button
             type="button"
@@ -1113,10 +1114,13 @@
 
     <!-- 採用前後比較画面 -->
     <div class="matrix-comparison-wrapper" *ngIf="currentScreen() === 'matrix'">
-      <div class="matrix-loading" *ngIf="matrixComparisonResults().length === 0">
+      <div class="matrix-loading" *ngIf="!additionalFileLoaded()">
+        <p>採用前後比較を表示するには、採用予定データが必要です。</p>
+      </div>
+      <div class="matrix-loading" *ngIf="additionalFileLoaded() && matrixComparisonResults().length === 0">
         <p>計算中...</p>
       </div>
-      <ng-container *ngIf="matrixComparisonResults().length > 0">
+      <ng-container *ngIf="additionalFileLoaded() && matrixComparisonResults().length > 0">
         <!-- グラフエリア（約60%） -->
         <div class="matrix-chart-container">
           <h3 class="matrix-chart-title">売上・利益差分の可視化</h3>

@@ -108,6 +108,11 @@ export interface PlacementSnapshot {
     totalProfit: number;
     perCapitaProfit: number;
   };
+  hasRecruitData: boolean;
+  simulationResult?: SimulationResult;
+  objectiveComparisonResults?: ObjectiveComparisonResult[];
+  objectiveComparisonResultsWithAdditional?: ObjectiveComparisonResult[];
+  matrixComparisonResults?: MatrixComparisonResult[];
 }
 
 export interface MatrixComparisonResult {

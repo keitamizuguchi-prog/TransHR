@@ -1392,6 +1392,11 @@ export class App implements OnInit, OnDestroy {
       .subscribe(isAuth => {
         console.log('[App] Authentication state changed:', isAuth);
         this.isAuthenticated.set(isAuth);
+        // ログアウト時にデータをクリア
+        if (!isAuth) {
+          this.clearAllFileData();
+          this.currentScreen.set('dashboard');
+        }
       });
 
     this.setupActivityListener();
@@ -1415,6 +1420,10 @@ export class App implements OnInit, OnDestroy {
 
   async logout(): Promise<void> {
     try {
+      // データをクリア
+      this.clearAllFileData();
+      this.currentScreen.set('dashboard');
+      // ログアウト処理を実行
       await this.authService.logout();
     } catch (error) {
       console.error('Logout failed:', error);
@@ -1497,11 +1506,16 @@ export class App implements OnInit, OnDestroy {
       employees: this.employees().map(emp => ({ ...emp })),
       selectedObjective: this.selectedObjective,
       optimizationExecuted: this.optimizationExecuted(),
+      hasRecruitData: this.additionalFileLoaded(),
       kpi: {
         totalSales: result.totalSales,
         totalProfit: result.totalProfit,
         perCapitaProfit: result.perCapitaProfit,
       },
+      simulationResult: { ...result },
+      objectiveComparisonResults: this.objectiveComparisonResults().map(r => ({ ...r })),
+      objectiveComparisonResultsWithAdditional: this.objectiveComparisonResultsWithAdditional().map(r => ({ ...r })),
+      matrixComparisonResults: this.matrixComparisonResults().map(r => ({ ...r })),
     };
 
     this.savedSnapshots.update(snapshots => [snapshot, ...snapshots]);
@@ -1534,12 +1548,34 @@ export class App implements OnInit, OnDestroy {
     this.selectedObjective = snapshot.selectedObjective;
     this.optimizationExecuted.set(snapshot.optimizationExecuted);
 
-    this.updateSimulation();
+    // 保存された統計情報を復元
+    if (snapshot.simulationResult) {
+      this.simulationResult.set(snapshot.simulationResult);
+    } else {
+      this.updateSimulation();
+    }
 
-    // 比較結果は再計算が必要なためリセット
-    this.objectiveComparisonResults.set([]);
-    this.objectiveComparisonResultsWithAdditional.set([]);
-    this.matrixComparisonResults.set([]);
+    // 保存された比較結果を復元
+    if (snapshot.objectiveComparisonResults) {
+      this.objectiveComparisonResults.set(snapshot.objectiveComparisonResults);
+    } else {
+      this.objectiveComparisonResults.set([]);
+    }
+
+    if (snapshot.objectiveComparisonResultsWithAdditional) {
+      this.objectiveComparisonResultsWithAdditional.set(snapshot.objectiveComparisonResultsWithAdditional);
+    } else {
+      this.objectiveComparisonResultsWithAdditional.set([]);
+    }
+
+    if (snapshot.matrixComparisonResults) {
+      this.matrixComparisonResults.set(snapshot.matrixComparisonResults);
+    } else {
+      this.matrixComparisonResults.set([]);
+    }
+
+    // 采用予定データの有無フラグを復元
+    this.additionalFileLoaded.set(snapshot.hasRecruitData);
 
     // 手動調整タブへ遷移してサイドバーを閉じる
     this.currentScreen.set('manual');
