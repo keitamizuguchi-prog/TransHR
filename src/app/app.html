@@ -229,7 +229,6 @@
         <div class="manual-info-left">
           <div class="manual-objective-name">{{ selectedObjective === 'totalSales' ? '全社売上最大化' : selectedObjective === 'deptAProfit' ? 'A事業部利益最大化' : selectedObjective === 'deptBSales' ? 'B事業部売上最大化' : 'C事業部売上最大化' }}</div>
           <button
-            *ngIf="hasLockedEmployees()"
             type="button"
             class="lock-reoptimize-btn"
             (click)="runOptimizationWithLocks()"
