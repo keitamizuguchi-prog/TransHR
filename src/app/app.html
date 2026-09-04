@@ -2,14 +2,14 @@
   <!-- ログイン画面 -->
   <div *ngIf="!isAuthenticated()" class="login-container">
     <div style="text-align: center;">
-      <h1 style="font-size: 48px; color: var(--text-strong); margin: 0 0 16px 0; font-weight: 700;">人材配置シミュレーション</h1>
+      <h1 style="font-size: 48px; color: var(--text-strong); margin: 0 0 16px 0; font-weight: 700;">🔄 TransHR</h1>
       <p style="font-size: 18px; color: var(--text-secondary); margin: 0; line-height: 1.6;">
         最適な人員配置を自動算出<br>
         経営計画の提案を行えます
       </p>
     </div>
     <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 40px; border-radius: var(--radius-card); box-shadow: var(--glass-shadow); text-align: center;">
-      <div style="font-size: 64px; margin-bottom: 24px;">📊</div>
+      <div style="font-size: 64px; margin-bottom: 24px;">🔄</div>
       <h2 style="font-size: 20px; color: var(--text-strong); margin: 0 0 24px 0; font-weight: 600;">はじめる</h2>
       <p style="color: var(--text-secondary); margin: 0 0 32px 0; font-size: 14px;">Googleアカウントでログインしてください</p>
       <button (click)="loginWithGoogle()" style="padding: 16px 48px; background-color: var(--accent-primary); color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; margin: 0 auto; box-shadow: 0 10px 30px -5px rgba(0, 86, 210, 0.25);">
@@ -49,7 +49,11 @@
             </div>
 
             <ul class="snapshot-list">
-              <li *ngFor="let snapshot of savedSnapshots()" class="snapshot-item" (click)="loadSnapshot(snapshot)">
+              <li *ngFor="let snapshot of savedSnapshots()"
+                  class="snapshot-item"
+                  (click)="loadSnapshot(snapshot)"
+                  (mouseenter)="onSnapshotItemMouseEnter($event, snapshot.id)"
+                  (mouseleave)="onSnapshotItemMouseLeave()">
                 <div class="snapshot-info">
                   <span class="snapshot-name">{{ snapshot.name }}</span>
                   <span class="snapshot-kpi">
@@ -67,16 +71,40 @@
                 </button>
               </li>
             </ul>
-          </div>
-        </div>
 
-        <!-- テンプレート管理（将来用・非活性） -->
-        <div class="sidebar-group">
-          <button type="button" class="sidebar-menu-item disabled" disabled>
-            <span class="sidebar-menu-icon">▶</span>
-            <span class="sidebar-menu-label">📋 テンプレート管理</span>
-            <span class="sidebar-menu-soon">近日公開</span>
-          </button>
+            <!-- Portal風のツールチップ（最上位に描画） -->
+            <div *ngIf="activeSnapshot() as snapshot"
+                 class="snapshot-hover-tooltip-portal"
+                 [style.top.px]="tooltipPosition()?.top"
+                 [style.left.px]="tooltipPosition()?.left">
+              <div class="tooltip-content">
+                <div class="tooltip-row">
+                  <span class="tooltip-label">作成日時:</span>
+                  <span class="tooltip-value">{{ snapshot.createdAt | date:'short' }}</span>
+                </div>
+                <div class="tooltip-row">
+                  <span class="tooltip-label">最終更新:</span>
+                  <span class="tooltip-value">{{ snapshot.lastModifiedAt | date:'short' }}</span>
+                </div>
+                <div *ngIf="snapshot.mainFileName" class="tooltip-row">
+                  <span class="tooltip-label">従業員ファイル:</span>
+                  <span class="tooltip-value tooltip-filename">{{ snapshot.mainFileName }}</span>
+                </div>
+                <div *ngIf="snapshot.additionalFileName" class="tooltip-row">
+                  <span class="tooltip-label">採用予定ファイル:</span>
+                  <span class="tooltip-value tooltip-filename">{{ snapshot.additionalFileName }}</span>
+                </div>
+                <div *ngIf="snapshot.lastModifiedBy" class="tooltip-row">
+                  <span class="tooltip-label">最終保存者:</span>
+                  <span class="tooltip-value">{{ snapshot.lastModifiedBy }}</span>
+                </div>
+                <div *ngIf="snapshot.memo" class="tooltip-row">
+                  <span class="tooltip-label">メモ:</span>
+                  <span class="tooltip-value">{{ snapshot.memo }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- お問い合わせ -->
@@ -1268,6 +1296,7 @@
               <span class="plan-comparison-value">
                 {{ row.leftValue | number: decimalFormat(row.decimals) }}<span class="plan-comparison-unit">{{ row.unit }}</span>
                 <span class="winner-arrow" *ngIf="row.winner === 'left'">↑</span>
+                <span class="winner-diff" *ngIf="row.winner === 'left'"> {{ row.diffFormatted }}</span>
               </span>
             </div>
             <div class="plan-comparison-cell plan-comparison-cell-right" [class.winner]="row.winner === 'right'">
@@ -1275,6 +1304,7 @@
               <span class="plan-comparison-value">
                 {{ row.rightValue | number: decimalFormat(row.decimals) }}<span class="plan-comparison-unit">{{ row.unit }}</span>
                 <span class="winner-arrow" *ngIf="row.winner === 'right'">↑</span>
+                <span class="winner-diff" *ngIf="row.winner === 'right'"> {{ row.diffFormatted }}</span>
               </span>
             </div>
           </div>

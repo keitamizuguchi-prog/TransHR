@@ -1160,7 +1160,7 @@
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .app-sidebar.open {
@@ -1205,6 +1205,7 @@
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
+  overflow-x: visible;
   padding: 8px 0;
 }
 
@@ -1277,6 +1278,7 @@
   padding: 8px 12px 12px;
   background: #fafafa;
   animation: slideDown 0.2s ease;
+  overflow: visible;
 }
 
 .sidebar-save-btn {
@@ -1324,6 +1326,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .snapshot-item:hover {
@@ -1373,6 +1376,83 @@
 
 .snapshot-delete-btn:hover {
   background: var(--accent-danger-soft);
+}
+
+/* ホバーツールチップ - Portal風（position: fixed使用） */
+.snapshot-hover-tooltip-portal {
+  position: fixed;
+  transform: translateY(-50%);
+  background: #1a1a1a;
+  color: #ffffff;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 10000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  max-width: 380px;
+  white-space: normal;
+  word-break: break-word;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-width: 260px;
+  animation: tooltipFadeInPortal 0.2s ease;
+}
+
+@keyframes tooltipFadeInPortal {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.snapshot-item:hover .snapshot-hover-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.tooltip-row + .tooltip-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tooltip-label {
+  font-weight: 700;
+  flex-shrink: 0;
+  color: #ffffff;
+  min-width: 80px;
+  font-size: 13px;
+}
+
+.tooltip-value {
+  color: #f0f0f0;
+  flex: 1;
+  word-break: break-word;
+  white-space: normal;
+  font-size: 13px;
+}
+
+.tooltip-filename {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #d4af37;
 }
 
 /* 採用前後比較 - レイアウト全体（動的分割） */
@@ -1748,6 +1828,16 @@
 .winner-arrow {
   font-size: 10px;
   color: var(--text-tertiary);
+}
+
+.plan-comparison-cell.winner .winner-arrow,
+.plan-comparison-cell.winner .winner-diff {
+  color: #52b788;
+}
+
+.winner-diff {
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .plan-comparison-empty-body {

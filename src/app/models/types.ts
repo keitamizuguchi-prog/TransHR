@@ -100,6 +100,11 @@ export interface PlacementSnapshot {
   id: string;
   name: string;
   createdAt: string;
+  lastModifiedAt: string;
+  lastModifiedBy?: string;
+  memo?: string;
+  mainFileName?: string;
+  additionalFileName?: string;
   employees: Employee[];
   selectedObjective: OptimizationObjective;
   optimizationExecuted: boolean;

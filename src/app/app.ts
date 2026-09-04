@@ -21,6 +21,8 @@ interface PlanComparisonRow {
   unit: string;
   decimals: number;
   winner: 'left' | 'right' | null;
+  diff?: number;
+  diffFormatted?: string;
 }
 
 interface PlanComparisonSection {
@@ -968,6 +970,17 @@ export class App implements OnInit, OnDestroy {
   protected savedPlansExpanded = signal<boolean>(false);
   protected savedSnapshots = signal<PlacementSnapshot[]>([]);
   protected isViewingSavedPlan = signal<boolean>(false);
+  protected currentlyLoadedSnapshot = signal<PlacementSnapshot | null>(null);
+
+  // ツールチップ位置情報
+  protected tooltipPosition = signal<{ top: number; left: number } | null>(null);
+  protected activeTooltipId = signal<string | null>(null);
+
+  protected activeSnapshot = computed<PlacementSnapshot | null>(() => {
+    const id = this.activeTooltipId();
+    if (!id) return null;
+    return this.savedSnapshots().find(s => s.id === id) ?? null;
+  });
 
   // 保存案比較タブ用
   protected planComparisonLeftId = signal<string>('');
@@ -1015,14 +1028,24 @@ export class App implements OnInit, OnDestroy {
       unit: string,
       decimals: number,
       higherIsBetter: boolean
-    ): PlanComparisonRow => ({
-      label,
-      leftValue,
-      rightValue,
-      unit,
-      decimals,
-      winner: this.getComparisonWinner(leftValue, rightValue, higherIsBetter),
-    });
+    ): PlanComparisonRow => {
+      const winner = this.getComparisonWinner(leftValue, rightValue, higherIsBetter);
+      const winnerValue = winner === 'left' ? leftValue : winner === 'right' ? rightValue : 0;
+      const loserValue = winner === 'left' ? rightValue : winner === 'right' ? leftValue : 0;
+      const diff = winner ? Math.abs(winnerValue - loserValue) : undefined;
+      const diffFormatted = diff !== undefined ? `(+${diff.toFixed(decimals)})` : undefined;
+
+      return {
+        label,
+        leftValue,
+        rightValue,
+        unit,
+        decimals,
+        winner,
+        diff,
+        diffFormatted,
+      };
+    };
 
     return [
       {
@@ -1492,17 +1515,41 @@ export class App implements OnInit, OnDestroy {
       return;
     }
 
-    const defaultName = `配置案 ${this.savedSnapshots().length + 1}`;
+    const currentlyLoaded = this.currentlyLoadedSnapshot();
+    let useOverwrite = false;
+    let overwriteId: string | null = null;
+
+    // ロード中の一時保存案がある場合、上書き保存か新規保存かを聞く
+    if (currentlyLoaded) {
+      const shouldOverwrite = window.confirm(
+        `「${currentlyLoaded.name}」を上書き保存しますか？\n\nOK: 上書き保存\nキャンセル: 新規保存`
+      );
+      if (shouldOverwrite) {
+        useOverwrite = true;
+        overwriteId = currentlyLoaded.id;
+      }
+    }
+
+    const defaultName = useOverwrite ? currentlyLoaded!.name : `配置案 ${this.savedSnapshots().length + 1}`;
     const name = window.prompt('配置案の名前を入力してください', defaultName);
     if (name === null) return;
 
     const trimmedName = name.trim() || defaultName;
+    const memo = window.prompt('メモ（オプション）を入力してください', currentlyLoaded?.memo || '');
+
     const result = this.simulationResult();
+    const user = this.currentUser();
+    const lastModifiedBy = user?.displayName || user?.email || 'Unknown';
 
     const snapshot: PlacementSnapshot = {
-      id: `snapshot_${Date.now()}`,
+      id: useOverwrite ? overwriteId! : `snapshot_${Date.now()}`,
       name: trimmedName,
-      createdAt: new Date().toISOString(),
+      createdAt: useOverwrite ? currentlyLoaded!.createdAt : new Date().toISOString(),
+      lastModifiedAt: new Date().toISOString(),
+      lastModifiedBy: lastModifiedBy,
+      memo: memo && memo.trim() ? memo.trim() : undefined,
+      mainFileName: this.mainFileName(),
+      additionalFileName: this.additionalFileName(),
       employees: this.employees().map(emp => ({ ...emp })),
       selectedObjective: this.selectedObjective,
       optimizationExecuted: this.optimizationExecuted(),
@@ -1518,9 +1565,21 @@ export class App implements OnInit, OnDestroy {
       matrixComparisonResults: this.matrixComparisonResults().map(r => ({ ...r })),
     };
 
-    this.savedSnapshots.update(snapshots => [snapshot, ...snapshots]);
+    if (useOverwrite) {
+      // 上書き保存：既存のスナップショットを置き換える
+      this.savedSnapshots.update(snapshots =>
+        snapshots.map(s => s.id === overwriteId ? snapshot : s)
+      );
+      this.currentlyLoadedSnapshot.set(snapshot);
+    } else {
+      // 新規保存：先頭に追加
+      this.savedSnapshots.update(snapshots => [snapshot, ...snapshots]);
+      this.currentlyLoadedSnapshot.set(snapshot);
+    }
+
     this.persistSnapshots();
-    this.showToast(`配置案「${trimmedName}」を保存しました`, 'success');
+    const actionLabel = useOverwrite ? '上書き保存' : '新規保存';
+    this.showToast(`配置案「${trimmedName}」を${actionLabel}しました`, 'success');
   }
 
   loadSnapshot(snapshot: PlacementSnapshot): void {
@@ -1586,6 +1645,7 @@ export class App implements OnInit, OnDestroy {
 
     // 一時保存案の反映状態をマーク
     this.isViewingSavedPlan.set(true);
+    this.currentlyLoadedSnapshot.set(snapshot);
 
     this.showToast(`配置案「${snapshot.name}」を復元しました`, 'success');
   }
@@ -1623,6 +1683,7 @@ export class App implements OnInit, OnDestroy {
 
     // 一時保存案の反映状態をクリア
     this.isViewingSavedPlan.set(false);
+    this.currentlyLoadedSnapshot.set(null);
   }
 
   deleteSnapshot(snapshot: PlacementSnapshot, event: Event): void {
@@ -1630,6 +1691,12 @@ export class App implements OnInit, OnDestroy {
     if (!window.confirm(`配置案「${snapshot.name}」を削除しますか？`)) return;
 
     this.savedSnapshots.update(snapshots => snapshots.filter(s => s.id !== snapshot.id));
+
+    // 削除されたsnapshotがロード中だった場合、クリアする
+    if (this.currentlyLoadedSnapshot()?.id === snapshot.id) {
+      this.currentlyLoadedSnapshot.set(null);
+    }
+
     this.persistSnapshots();
   }
 
@@ -1973,6 +2040,7 @@ export class App implements OnInit, OnDestroy {
     this.matrixComparisonResults.set([]);
     this.optimizationExecuted.set(false);
     this.isViewingSavedPlan.set(false);
+    this.currentlyLoadedSnapshot.set(null);
   }
 
   clearCandidateFile(): void {
@@ -3165,5 +3233,25 @@ export class App implements OnInit, OnDestroy {
     }));
 
     console.log(`${this.selectedEmployeesForBulkChange.length}名をロック解除しました`);
+  }
+
+  // ツールチップの位置計算とホバー処理
+  onSnapshotItemMouseEnter(event: MouseEvent, snapshotId: string): void {
+    const target = event.currentTarget as HTMLElement;
+    if (!target) return;
+
+    // 要素の画面上の座標を取得
+    const rect = target.getBoundingClientRect();
+
+    // ツールチップの位置を計算（要素の右側に配置）
+    const tooltipTop = rect.top + rect.height / 2;
+    const tooltipLeft = rect.right + 10; // 右側に10pxの間隔
+
+    this.tooltipPosition.set({ top: tooltipTop, left: tooltipLeft });
+    this.activeTooltipId.set(snapshotId);
+  }
+
+  onSnapshotItemMouseLeave(): void {
+    this.activeTooltipId.set(null);
   }
 }
