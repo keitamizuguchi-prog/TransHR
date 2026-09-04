@@ -2138,29 +2138,11 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
-  runOptimization(): void {
-    this.isProcessing.set(true);
-
-    setTimeout(() => {
-      const optimizedEmployees = this.calculatorService.optimizePlacement(
-        this.employees(),
-        this.selectedObjective
-      );
-
-      this.employees.set(optimizedEmployees);
-
-    const assignedEmployees = optimizedEmployees.filter(
-      emp => emp.assignedDept !== 'Temp'
-    );
-    const deptAEmployees = assignedEmployees.filter(
-      emp => emp.assignedDept === 'A'
-    );
-    const deptBEmployees = assignedEmployees.filter(
-      emp => emp.assignedDept === 'B'
-    );
-    const deptCEmployees = assignedEmployees.filter(
-      emp => emp.assignedDept === 'C'
-    );
+  private sortEmployeesByContribution(employees: Employee[]): void {
+    const assignedEmployees = employees.filter(emp => emp.assignedDept !== 'Temp');
+    const deptAEmployees = assignedEmployees.filter(emp => emp.assignedDept === 'A');
+    const deptBEmployees = assignedEmployees.filter(emp => emp.assignedDept === 'B');
+    const deptCEmployees = assignedEmployees.filter(emp => emp.assignedDept === 'C');
 
     deptAEmployees.sort((a, b) => {
       const contribA = this.calculatorService.calcEmployeeContribution(a, 'A');
@@ -2179,38 +2161,59 @@ export class App implements OnInit, OnDestroy {
       const contribB = this.calculatorService.calcEmployeeContribution(b, 'C');
       return contribB - contribA;
     });
+  }
 
-      switch (this.selectedObjective) {
-        case 'totalSales':
-          this.optimizationReason = '【最適化の根拠】全社売上 >= 58億円および各部署の最低人数制約を満たしつつ、全社の合計売上が最大となる人員配置を算出しました。';
-          break;
-        case 'deptAProfit':
-          this.optimizationReason = '【最適化の根拠】A事業部の利益を最大化しつつ、副目的としてB・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
-          break;
-        case 'deptBSales':
-          this.optimizationReason = '【最適化の根拠】B事業部の売上を最大化しつつ、副目的としてA・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
-          break;
-        case 'deptCSales':
-          this.optimizationReason = '【最適化の根拠】C事業部の売上を最大化しつつ、副目的としてA・B事業部の売上合計が最も高くなる組み合わせを選出しました。';
-          break;
-      }
+  private applyOptimizationResult(
+    optimizedEmployees: Employee[],
+    objective: OptimizationObjective,
+    showToast: boolean = true
+  ): void {
+    this.employees.set(optimizedEmployees);
+    this.sortEmployeesByContribution(optimizedEmployees);
 
-      this.optimizationExecuted.set(true);
+    switch (objective) {
+      case 'totalSales':
+        this.optimizationReason = '【最適化の根拠】全社売上 >= 58億円および各部署の最低人数制約を満たしつつ、全社の合計売上が最大となる人員配置を算出しました。';
+        break;
+      case 'deptAProfit':
+        this.optimizationReason = '【最適化の根拠】A事業部の利益を最大化しつつ、副目的としてB・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
+        break;
+      case 'deptBSales':
+        this.optimizationReason = '【最適化の根拠】B事業部の売上を最大化しつつ、副目的としてA・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
+        break;
+      case 'deptCSales':
+        this.optimizationReason = '【最適化の根拠】C事業部の売上を最大化しつつ、副目的としてA・B事業部の売上合計が最も高くなる組み合わせを選出しました。';
+        break;
+    }
 
-      // mainEmployees も更新（採用予定者を除外）
-      const mainOnlyEmployees = optimizedEmployees.filter(emp => emp.source !== 'candidate');
-      this.mainEmployees.set(mainOnlyEmployees);
+    this.optimizationExecuted.set(true);
+    const mainOnlyEmployees = optimizedEmployees.filter(emp => emp.source !== 'candidate');
+    this.mainEmployees.set(mainOnlyEmployees);
 
-      this.updateSimulation();
+    this.updateSimulation();
 
-      // 説明テキストを生成
-      const explanation = this.calculatorService.generateOptimizationExplanation(
-        optimizedEmployees,
-        this.simulationResult(),
+    const explanation = this.calculatorService.generateOptimizationExplanation(
+      optimizedEmployees,
+      this.simulationResult(),
+      objective
+    );
+    this.optimizationExplanation.set(explanation);
+
+    if (showToast) {
+      this.showToast('最適配置を算出しました', 'success');
+    }
+  }
+
+  runOptimization(): void {
+    this.isProcessing.set(true);
+
+    setTimeout(() => {
+      const optimizedEmployees = this.calculatorService.optimizePlacement(
+        this.employees(),
         this.selectedObjective
       );
-      this.optimizationExplanation.set(explanation);
 
+      this.applyOptimizationResult(optimizedEmployees, this.selectedObjective, false);
       this.isProcessing.set(false);
     }, 100);
   }
@@ -2222,36 +2225,17 @@ export class App implements OnInit, OnDestroy {
     this.isProcessing.set(true);
 
     setTimeout(() => {
-      // 再計算前の状態を保存（差分表示用）
       const stateBefore = this.simulationResult();
 
-      // ロック済み社員は現在の事業部を固定変数として維持し、
-      // 未ロック社員のみを対象に「全社売上最大化」で最適化を実行
       const optimizedEmployees = this.calculatorService.optimizePlacement(
         this.employees(),
         'totalSales'
       );
 
-      this.employees.set(optimizedEmployees);
-
       this.optimizationReason = '【固定条件での再計算】ロックされた社員を現在の事業部に固定したまま、未ロック社員のみを対象に全社売上が最大となる配置を算出しました。';
-      this.optimizationExecuted.set(true);
+      this.applyOptimizationResult(optimizedEmployees, 'totalSales', false);
 
-      // mainEmployees も更新（採用予定者を除外）
-      const mainOnlyEmployees = optimizedEmployees.filter(emp => emp.source !== 'candidate');
-      this.mainEmployees.set(mainOnlyEmployees);
-
-      // シミュレーション結果とKPIを即座に反映
-      this.updateSimulation();
       this.previousSimulationResult.set(stateBefore);
-
-      // 説明テキストを生成
-      const explanation = this.calculatorService.generateOptimizationExplanation(
-        optimizedEmployees,
-        this.simulationResult(),
-        'totalSales'
-      );
-      this.optimizationExplanation.set(explanation);
 
       // 比較結果は再計算が必要なためリセット
       this.objectiveComparisonResults.set([]);
