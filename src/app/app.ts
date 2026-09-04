@@ -1510,6 +1510,20 @@ export class App implements OnInit, OnDestroy {
   }
 
   loadSnapshot(snapshot: PlacementSnapshot): void {
+    // ファイルデータが読み込まれているかをチェック
+    const hasFileData = this.mainFileName() !== '' || this.additionalFileName() !== '';
+
+    if (hasFileData) {
+      // ファイルデータが存在する場合は確認ダイアログを表示
+      const confirmed = window.confirm('現在読み込まれているファイルデータはクリアされますが、一時保存案を反映しますか？');
+      if (!confirmed) {
+        // キャンセル時：処理を直ちに中断
+        return;
+      }
+      // OK時：ファイルデータを完全にクリア
+      this.clearAllFileData();
+    }
+
     const restoredEmployees = snapshot.employees.map(emp => ({ ...emp }));
     this.employees.set(restoredEmployees);
 
@@ -1538,6 +1552,41 @@ export class App implements OnInit, OnDestroy {
     this.isViewingSavedPlan.set(true);
 
     this.showToast(`配置案「${snapshot.name}」を復元しました`, 'success');
+  }
+
+  private clearAllFileData(): void {
+    // 従業員ファイルのクリア
+    if (this.mainFileInput) {
+      this.mainFileInput.nativeElement.value = '';
+    }
+    // 採用予定ファイルのクリア
+    if (this.additionalFileInput) {
+      this.additionalFileInput.nativeElement.value = '';
+    }
+
+    // ファイル名をクリア
+    this.mainFileName.set('');
+    this.additionalFileName.set('');
+    this.additionalFileLoaded.set(false);
+
+    // 従業員データをクリア
+    this.employees.set([]);
+    this.mainEmployees.set([]);
+
+    // シミュレーション結果をリセット
+    this.simulationResult.set(this.createEmptyResult());
+    this.previousSimulationResult.set(this.createEmptyResult());
+
+    // 比較結果をリセット
+    this.objectiveComparisonResults.set([]);
+    this.objectiveComparisonResultsWithAdditional.set([]);
+    this.matrixComparisonResults.set([]);
+
+    // 最適化フラグをリセット
+    this.optimizationExecuted.set(false);
+
+    // 一時保存案の反映状態をクリア
+    this.isViewingSavedPlan.set(false);
   }
 
   deleteSnapshot(snapshot: PlacementSnapshot, event: Event): void {
