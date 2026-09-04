@@ -2692,12 +2692,17 @@ export class App implements OnInit, OnDestroy {
   }
 
   exportPlacementToCsv(): void {
-    if (this.currentScreen() === 'dashboard') {
+    const currentScreen = this.currentScreen();
+
+    if (currentScreen !== 'dashboard' && currentScreen !== 'manual') {
+      this.showToast('ダッシュボードまたは手動調整タブでのみ実行可能です。');
+      return;
+    }
+
+    if (currentScreen === 'dashboard') {
       this.exportDashboardToCsv();
-    } else if (this.currentScreen() === 'objective') {
-      this.exportObjectiveComparisonToCsv();
-    } else if (this.currentScreen() === 'matrix') {
-      this.exportMatrixComparisonToCsv();
+    } else if (currentScreen === 'manual') {
+      this.exportManualAdjustmentToCsv();
     }
   }
 
@@ -2782,6 +2787,48 @@ export class App implements OnInit, OnDestroy {
     }
 
     this.downloadCsv(rows.join('\n'), 'matrix_comparison.csv');
+  }
+
+  private exportManualAdjustmentToCsv(): void {
+    const result = this.simulationResult();
+    const rows: string[] = [];
+
+    // 全社サマリー
+    rows.push('全社サマリー');
+    rows.push('項目,値');
+    rows.push(`全社売上(億円),${result.totalSales.toFixed(2)}`);
+    rows.push(`全社利益(億円),${result.totalProfit.toFixed(2)}`);
+    rows.push('');
+
+    // 各事業部統計
+    const depts = [
+      { name: 'A事業部', metrics: result.deptA },
+      { name: 'B事業部', metrics: result.deptB },
+      { name: 'C事業部', metrics: result.deptC },
+    ];
+
+    for (const dept of depts) {
+      rows.push(dept.name);
+      rows.push('項目,値');
+      rows.push(`配置人数,${dept.metrics.headcount}名`);
+      rows.push(`充足率,${dept.metrics.fulfillmentRate?.toFixed(1) || 0}%`);
+      rows.push(`基本売上(億円),${dept.metrics.baseSales.toFixed(2)}`);
+      rows.push(`最終売上(億円),${dept.metrics.finalSales.toFixed(2)}`);
+      rows.push(`コスト(億円),${dept.metrics.deptCost.toFixed(2)}`);
+      rows.push(`利益(億円),${dept.metrics.profit.toFixed(2)}`);
+      rows.push('');
+    }
+
+    // 人材配置一覧
+    rows.push('人材配置一覧');
+    rows.push('ID,氏名,営業力,管理力,開拓力,育成力,人件費,配置先,ロック状態');
+    for (const emp of this.employees()) {
+      rows.push(
+        `${emp.id},${emp.name},${emp.salesPower.toFixed(1)},${emp.managementPower.toFixed(1)},${emp.pioneeringPower.toFixed(1)},${emp.trainingPower.toFixed(1)},${emp.laborCost},${emp.assignedDept},${emp.isLocked ? 'ロック中' : ''}`
+      );
+    }
+
+    this.downloadCsv(rows.join('\n'), 'manual_adjustment.csv');
   }
 
   private downloadCsv(csvContent: string, fileName: string): void {
