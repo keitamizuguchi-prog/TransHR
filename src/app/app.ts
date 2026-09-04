@@ -2249,8 +2249,16 @@ export class App implements OnInit, OnDestroy {
     setTimeout(() => {
       const stateBefore = this.simulationResult();
 
+      // ロック済み従業員の配置は保持、未ロック従業員は Temp にリセット
+      // これにより、ロック済み従業員に配置枠を奪われず、
+      // 未ロック従業員が各事業部に最適に配置される
+      const employeesForOptimization = this.employees().map(emp => ({
+        ...emp,
+        assignedDept: emp.isLocked ? emp.assignedDept : ('Temp' as any)
+      }));
+
       const optimizedEmployees = this.calculatorService.optimizePlacement(
-        this.employees(),
+        employeesForOptimization,
         'totalSales'
       );
 
