@@ -1919,8 +1919,8 @@ export class App implements OnInit, OnDestroy {
         event.target.value = '';
         return;
       }
-      // OK時：一時保存案の反映状態をクリア
-      this.isViewingSavedPlan.set(false);
+      // OK時：Stateを完全にクリア（既読み込みファイルデータをクリア）
+      this.clearAllFileData();
     }
 
     const fileName = file.name;
@@ -1950,19 +1950,11 @@ export class App implements OnInit, OnDestroy {
         newEmployees[i].source = 'existing';
       }
 
-      // 既存の社員と新しい社員を統合（一時置き場に追加するのみ、配置計算は行わない）
-      const currentEmployees = this.employees();
-      const combinedEmployees = [...currentEmployees, ...newEmployees];
+      // ファイル名を設定
+      this.mainFileName.set(fileName);
 
-      // 更新：ファイル名を追記（複数選択対応）
-      if (this.mainFileName() === '') {
-        this.mainFileName.set(fileName);
-      } else {
-        this.mainFileName.set(this.mainFileName() + ', ' + fileName);
-      }
-
-      this.employees.set(combinedEmployees);
-      this.mainEmployees.set(combinedEmployees);
+      this.employees.set(newEmployees);
+      this.mainEmployees.set(newEmployees);
       this.tempPanelOpen.set(true);
       this.showToast(`${newEmployees.length}名の従業員データを読み込みました`, 'success');
       console.log('従業員ファイル読み込み完了。一時置き場に追加された社員数:', newEmployees.length);
@@ -2018,8 +2010,8 @@ export class App implements OnInit, OnDestroy {
         event.target.value = '';
         return;
       }
-      // OK時：一時保存案の反映状態をクリア
-      this.isViewingSavedPlan.set(false);
+      // OK時：Stateを完全にクリア（既読み込みファイルデータをクリア）
+      this.clearAllFileData();
     }
 
     const fileName = file.name;
@@ -2048,7 +2040,7 @@ export class App implements OnInit, OnDestroy {
         emp.source = 'candidate';
       });
 
-      // 現在の状態を保持して、採用予定ファイルの社員を一時置き場に追加するのみ（配置計算は行わない）
+      // 既存の従業員を保持しつつ、採用予定者を一時置き場に追加
       const currentEmployees = this.employees();
       const updatedEmployees = [...currentEmployees, ...additionalEmployees];
       this.employees.set(updatedEmployees);
@@ -2056,11 +2048,7 @@ export class App implements OnInit, OnDestroy {
       this.tempPanelOpen.set(true);
 
       // 追加ファイル名を更新
-      if (this.additionalFileName() === '') {
-        this.additionalFileName.set(fileName);
-      } else {
-        this.additionalFileName.set(this.additionalFileName() + ', ' + fileName);
-      }
+      this.additionalFileName.set(fileName);
 
       this.showToast(`${additionalEmployees.length}名の採用予定データを読み込みました`, 'success');
       console.log('採用予定ファイル読み込み完了。一時置き場に追加された採用候補者数:', additionalEmployees.length);
