@@ -712,11 +712,10 @@
     <!-- メイン画面（ダッシュボード） -->
     <div class="main-wrapper" *ngIf="currentScreen() === 'dashboard'">
       <!-- ファイル未選択時のガイダンス -->
-      <div *ngIf="mainFileName() === '' && !simulationResult() && !isProcessing()" class="empty-state-guide">
+      <div *ngIf="mainFileName() === '' && mainEmployees().length === 0" class="empty-state-guide">
         <div class="empty-state-content">
-          <div class="empty-state-icon">📂</div>
-          <h2 class="empty-state-title">従業員ファイルを選択してください</h2>
-          <p class="empty-state-description">ヘッダーから従業員ファイルを選択すると、人材配置シミュレーションが開始されます。</p>
+          <div class="empty-state-icon">📁</div>
+          <p class="empty-state-description">従業員ファイルを読み込んで、シミュレーションを開始します。</p>
         </div>
       </div>
 
