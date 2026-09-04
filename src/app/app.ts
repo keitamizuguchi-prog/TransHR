@@ -2139,51 +2139,73 @@ export class App implements OnInit, OnDestroy {
   }
 
   private sortEmployeesByContribution(employees: Employee[]): void {
-    const assignedEmployees = employees.filter(emp => emp.assignedDept !== 'Temp');
-    const deptAEmployees = assignedEmployees.filter(emp => emp.assignedDept === 'A');
-    const deptBEmployees = assignedEmployees.filter(emp => emp.assignedDept === 'B');
-    const deptCEmployees = assignedEmployees.filter(emp => emp.assignedDept === 'C');
+    const deptAIndices: number[] = [];
+    const deptBIndices: number[] = [];
+    const deptCIndices: number[] = [];
 
-    deptAEmployees.sort((a, b) => {
-      const contribA = this.calculatorService.calcEmployeeContribution(a, 'A');
-      const contribB = this.calculatorService.calcEmployeeContribution(b, 'A');
+    for (let i = 0; i < employees.length; i++) {
+      if (employees[i].assignedDept === 'A') deptAIndices.push(i);
+      else if (employees[i].assignedDept === 'B') deptBIndices.push(i);
+      else if (employees[i].assignedDept === 'C') deptCIndices.push(i);
+    }
+
+    deptAIndices.sort((i, j) => {
+      const contribA = this.calculatorService.calcEmployeeContribution(employees[i], 'A');
+      const contribB = this.calculatorService.calcEmployeeContribution(employees[j], 'A');
       return contribB - contribA;
     });
 
-    deptBEmployees.sort((a, b) => {
-      const contribA = this.calculatorService.calcEmployeeContribution(a, 'B');
-      const contribB = this.calculatorService.calcEmployeeContribution(b, 'B');
+    deptBIndices.sort((i, j) => {
+      const contribA = this.calculatorService.calcEmployeeContribution(employees[i], 'B');
+      const contribB = this.calculatorService.calcEmployeeContribution(employees[j], 'B');
       return contribB - contribA;
     });
 
-    deptCEmployees.sort((a, b) => {
-      const contribA = this.calculatorService.calcEmployeeContribution(a, 'C');
-      const contribB = this.calculatorService.calcEmployeeContribution(b, 'C');
+    deptCIndices.sort((i, j) => {
+      const contribA = this.calculatorService.calcEmployeeContribution(employees[i], 'C');
+      const contribB = this.calculatorService.calcEmployeeContribution(employees[j], 'C');
       return contribB - contribA;
     });
+
+    const sorted: Employee[] = [];
+    const tempEmployees = employees.filter(emp => emp.assignedDept === 'Temp');
+
+    for (const i of deptAIndices) sorted.push(employees[i]);
+    for (const i of deptBIndices) sorted.push(employees[i]);
+    for (const i of deptCIndices) sorted.push(employees[i]);
+    sorted.push(...tempEmployees);
+
+    for (let i = 0; i < employees.length; i++) {
+      employees[i] = sorted[i];
+    }
   }
 
   private applyOptimizationResult(
     optimizedEmployees: Employee[],
     objective: OptimizationObjective,
-    showToast: boolean = true
+    showToast: boolean = true,
+    customOptimizationReason?: string
   ): void {
     this.employees.set(optimizedEmployees);
     this.sortEmployeesByContribution(optimizedEmployees);
 
-    switch (objective) {
-      case 'totalSales':
-        this.optimizationReason = '【最適化の根拠】全社売上 >= 58億円および各部署の最低人数制約を満たしつつ、全社の合計売上が最大となる人員配置を算出しました。';
-        break;
-      case 'deptAProfit':
-        this.optimizationReason = '【最適化の根拠】A事業部の利益を最大化しつつ、副目的としてB・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
-        break;
-      case 'deptBSales':
-        this.optimizationReason = '【最適化の根拠】B事業部の売上を最大化しつつ、副目的としてA・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
-        break;
-      case 'deptCSales':
-        this.optimizationReason = '【最適化の根拠】C事業部の売上を最大化しつつ、副目的としてA・B事業部の売上合計が最も高くなる組み合わせを選出しました。';
-        break;
+    if (!customOptimizationReason) {
+      switch (objective) {
+        case 'totalSales':
+          this.optimizationReason = '【最適化の根拠】全社売上 >= 58億円および各部署の最低人数制約を満たしつつ、全社の合計売上が最大となる人員配置を算出しました。';
+          break;
+        case 'deptAProfit':
+          this.optimizationReason = '【最適化の根拠】A事業部の利益を最大化しつつ、副目的としてB・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
+          break;
+        case 'deptBSales':
+          this.optimizationReason = '【最適化の根拠】B事業部の売上を最大化しつつ、副目的としてA・C事業部の売上合計が最も高くなる組み合わせを選出しました。';
+          break;
+        case 'deptCSales':
+          this.optimizationReason = '【最適化の根拠】C事業部の売上を最大化しつつ、副目的としてA・B事業部の売上合計が最も高くなる組み合わせを選出しました。';
+          break;
+      }
+    } else {
+      this.optimizationReason = customOptimizationReason;
     }
 
     this.optimizationExecuted.set(true);
@@ -2232,8 +2254,8 @@ export class App implements OnInit, OnDestroy {
         'totalSales'
       );
 
-      this.optimizationReason = '【固定条件での再計算】ロックされた社員を現在の事業部に固定したまま、未ロック社員のみを対象に全社売上が最大となる配置を算出しました。';
-      this.applyOptimizationResult(optimizedEmployees, 'totalSales', false);
+      const customReason = '【固定条件での再計算】ロックされた社員を現在の事業部に固定したまま、未ロック社員のみを対象に全社売上が最大となる配置を算出しました。';
+      this.applyOptimizationResult(optimizedEmployees, 'totalSales', false, customReason);
 
       this.previousSimulationResult.set(stateBefore);
 
