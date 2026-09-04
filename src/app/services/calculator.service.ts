@@ -385,7 +385,8 @@ export class CalculatorService {
         emp.assignedDept = 'C';
         deptCCount++;
       } else {
-        emp.assignedDept = 'A';
+        // 最適人数を超えた社員はTempに配置（再計算時に最適化される）
+        emp.assignedDept = 'Temp';
       }
     }
 
@@ -420,7 +421,7 @@ export class CalculatorService {
     interface BestAction {
       type: 'move' | 'swap';
       empIndex?: number;
-      newDept?: 'A' | 'B' | 'C';
+      newDept?: 'A' | 'B' | 'C' | 'Temp';
       emp1Index?: number;
       emp2Index?: number;
     }
@@ -445,7 +446,7 @@ export class CalculatorService {
       let bestAction: BestAction | null = null;
 
       // パターン①: 1人移動パターンをすべて試す
-      const candidatesForMoveSimulation: Array<{ index: number; targetDept: 'A' | 'B' | 'C' }> = [];
+      const candidatesForMoveSimulation: Array<{ index: number; targetDept: 'A' | 'B' | 'C' | 'Temp' }> = [];
 
       for (let i = 0; i < currentEmployees.length; i++) {
         // ロック済み社員は移動対象外
@@ -453,10 +454,11 @@ export class CalculatorService {
           continue;
         }
 
-        const currentDept = currentEmployees[i].assignedDept as 'A' | 'B' | 'C';
-        const otherDepts = (['A', 'B', 'C'] as const).filter(d => d !== currentDept);
+        const currentDept = currentEmployees[i].assignedDept;
+        const allDepts = ['A', 'B', 'C', 'Temp'] as const;
+        const targetDepts = allDepts.filter(d => d !== currentDept);
 
-        for (const targetDept of otherDepts) {
+        for (const targetDept of targetDepts) {
           iterationCandidateCount++;
           candidatesForMoveSimulation.push({ index: i, targetDept });
         }
@@ -465,7 +467,7 @@ export class CalculatorService {
       // 候補のシミュレーション評価（パターン①）
       for (const candidate of candidatesForMoveSimulation) {
         const originalDept = currentEmployees[candidate.index].assignedDept;
-        currentEmployees[candidate.index].assignedDept = candidate.targetDept;
+        currentEmployees[candidate.index].assignedDept = candidate.targetDept as any;
 
         const testResult = this.calculateTotalSimulation(currentEmployees);
         totalSimulationCount++;
@@ -509,10 +511,10 @@ export class CalculatorService {
             continue;
           }
 
-          const deptI = currentEmployees[i].assignedDept as 'A' | 'B' | 'C';
-          const deptJ = currentEmployees[j].assignedDept as 'A' | 'B' | 'C';
+          const deptI = currentEmployees[i].assignedDept;
+          const deptJ = currentEmployees[j].assignedDept;
 
-          // 異なる部署の2名のみを対象
+          // 異なる部署の2名のみを対象（Tempを含む）
           if (deptI !== deptJ) {
             iterationCandidateCount++;
             candidatesForSwapSimulation.push({ index1: i, index2: j });
