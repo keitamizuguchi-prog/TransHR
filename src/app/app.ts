@@ -951,7 +951,7 @@ export class App implements OnInit, OnDestroy {
   protected toastVisible = signal<boolean>(false);
   protected toastType = signal<'success' | 'warning'>('warning');
   private toastTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  protected deptIds: DepartmentId[] = ['A', 'B', 'C', 'Temp'];
+  protected deptIds: DepartmentId[] = ['A', 'B', 'C', '保留'];
   protected deptConfig = DEPT_CONFIG;
   protected minTotalSales = MIN_TOTAL_SALES;
   protected selectedObjective: OptimizationObjective = 'totalSales';
@@ -1948,7 +1948,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   get tempEmployees(): Employee[] {
-    return this.getEmployeesByDept('Temp');
+    return this.getEmployeesByDept('保留');
   }
 
   private getEmployeesByDept(deptId: DepartmentId): Employee[] {
@@ -2013,7 +2013,7 @@ export class App implements OnInit, OnDestroy {
 
       // 新しい社員を全員Temp（一時置き場）に設定
       for (let i = 0; i < newEmployees.length; i++) {
-        newEmployees[i].assignedDept = 'Temp';
+        newEmployees[i].assignedDept = '保留';
         newEmployees[i].source = 'existing';
       }
 
@@ -2053,7 +2053,7 @@ export class App implements OnInit, OnDestroy {
     // 元の従業員の配置先を一時置き場にリセット（再現性の確保）
     const resetEmployees = remainingEmployees.map(emp => ({
       ...emp,
-      assignedDept: 'Temp' as DepartmentId
+      assignedDept: '保留' as DepartmentId
     }));
 
     this.employees.set(resetEmployees);
@@ -2104,7 +2104,7 @@ export class App implements OnInit, OnDestroy {
       const additionalEmployees = parseResult.employees;
 
       additionalEmployees.forEach((emp) => {
-        emp.assignedDept = 'Temp';
+        emp.assignedDept = '保留';
         emp.source = 'candidate';
       });
 
@@ -2200,7 +2200,7 @@ export class App implements OnInit, OnDestroy {
     this.simulationResult.set(result);
 
     // 一時置き場に誰も残っていなければ、パネルを自動的に閉じる
-    const tempEmployeesCount = this.employees().filter(emp => emp.assignedDept === 'Temp').length;
+    const tempEmployeesCount = this.employees().filter(emp => emp.assignedDept === '保留').length;
     if (tempEmployeesCount === 0) {
       this.tempPanelOpen.set(false);
     }
@@ -2236,7 +2236,7 @@ export class App implements OnInit, OnDestroy {
     });
 
     const sorted: Employee[] = [];
-    const tempEmployees = employees.filter(emp => emp.assignedDept === 'Temp');
+    const tempEmployees = employees.filter(emp => emp.assignedDept === '保留');
 
     for (const i of deptAIndices) sorted.push(employees[i]);
     for (const i of deptBIndices) sorted.push(employees[i]);
@@ -2321,7 +2321,7 @@ export class App implements OnInit, OnDestroy {
       // ロック済み従業員がいない場合は全員を Temp にリセット
       const employeesForOptimization = this.employees().map(emp => ({
         ...emp,
-        assignedDept: hasLocked && emp.isLocked ? emp.assignedDept : ('Temp' as any)
+        assignedDept: hasLocked && emp.isLocked ? emp.assignedDept : ('保留' as any)
       }));
 
       const optimizedEmployees = this.calculatorService.optimizePlacement(
@@ -2386,7 +2386,7 @@ export class App implements OnInit, OnDestroy {
         // 従業員の配置をリセット（一時置き場に）して最適化を実行
         const mainEmployeesForOptimization = mainEmployeesOnly.map(emp => ({
           ...emp,
-          assignedDept: 'Temp' as DepartmentId
+          assignedDept: '保留' as DepartmentId
         }));
 
         const optimizedEmployees = this.calculatorService.optimizePlacement(
@@ -2429,7 +2429,7 @@ export class App implements OnInit, OnDestroy {
           // 採用予定者の配置を一時置き場にリセットして最適化を実行
           const allEmployeesForOptimization = allEmployees.map(emp => {
             if (emp.source === 'candidate') {
-              return { ...emp, assignedDept: 'Temp' as DepartmentId };
+              return { ...emp, assignedDept: '保留' as DepartmentId };
             }
             return { ...emp };
           });
@@ -3044,7 +3044,7 @@ export class App implements OnInit, OnDestroy {
         pioneeringPower,
         trainingPower,
         laborCost,
-        assignedDept: 'Temp',
+        assignedDept: '保留',
         source: 'existing',
         isLocked: false,
       });

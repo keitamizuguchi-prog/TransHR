@@ -111,7 +111,7 @@ export class CalculatorService {
   calculateTotalSimulation(employees: Employee[]): SimulationResult {
     // Temp 以外の社員のみを対象
     const assignedEmployees = employees.filter(
-      (emp) => emp.assignedDept !== 'Temp'
+      (emp) => emp.assignedDept !== '保留'
     );
 
     // 各事業部に配置された社員をフィルタリング
@@ -140,7 +140,7 @@ export class CalculatorService {
     const perCapitaProfit = totalHeadcount > 0 ? (totalProfit * 10000) / totalHeadcount : 0;
 
     // 未配置人数
-    const unplacedCount = employees.filter(emp => emp.assignedDept === 'Temp').length;
+    const unplacedCount = employees.filter(emp => emp.assignedDept === '保留').length;
 
     // アラート発生数（最低人数未達または充足率ペナルティ）
     const deptConfig = DEPT_CONFIG;
@@ -196,7 +196,7 @@ export class CalculatorService {
   }
 
   calcEmployeeContribution(emp: Employee, deptId: DepartmentId): number {
-    if (deptId === 'Temp') {
+    if (deptId === '保留') {
       return 0;
     }
 
@@ -386,7 +386,7 @@ export class CalculatorService {
         deptCCount++;
       } else {
         // 最適人数を超えた社員はTempに配置（再計算時に最適化される）
-        emp.assignedDept = 'Temp';
+        emp.assignedDept = '保留';
       }
     }
 
@@ -421,7 +421,7 @@ export class CalculatorService {
     interface BestAction {
       type: 'move' | 'swap';
       empIndex?: number;
-      newDept?: 'A' | 'B' | 'C' | 'Temp';
+      newDept?: 'A' | 'B' | 'C' | '保留';
       emp1Index?: number;
       emp2Index?: number;
     }
@@ -446,7 +446,7 @@ export class CalculatorService {
       let bestAction: BestAction | null = null;
 
       // パターン①: 1人移動パターンをすべて試す
-      const candidatesForMoveSimulation: Array<{ index: number; targetDept: 'A' | 'B' | 'C' | 'Temp' }> = [];
+      const candidatesForMoveSimulation: Array<{ index: number; targetDept: 'A' | 'B' | 'C' | '保留' }> = [];
 
       for (let i = 0; i < currentEmployees.length; i++) {
         // ロック済み社員は移動対象外
@@ -455,7 +455,7 @@ export class CalculatorService {
         }
 
         const currentDept = currentEmployees[i].assignedDept;
-        const allDepts = ['A', 'B', 'C', 'Temp'] as const;
+        const allDepts = ['A', 'B', 'C', '保留'] as const;
         const targetDepts = allDepts.filter(d => d !== currentDept);
 
         for (const targetDept of targetDepts) {

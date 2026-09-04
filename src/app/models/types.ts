@@ -1,4 +1,4 @@
-export type DepartmentId = 'A' | 'B' | 'C' | 'Temp';
+export type DepartmentId = 'A' | 'B' | 'C' | '保留';
 export type OptimizationObjective = 'totalSales' | 'deptAProfit' | 'deptBSales' | 'deptCSales';
 
 export type EmployeeSource = 'existing' | 'candidate';

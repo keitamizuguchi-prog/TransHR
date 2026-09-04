@@ -388,7 +388,7 @@
               <option value="A">A事業部</option>
               <option value="B">B事業部</option>
               <option value="C">C事業部</option>
-              <option value="Temp">一時置き場</option>
+              <option value="保留">一時置き場</option>
             </select>
           </div>
 
@@ -479,7 +479,7 @@
                 {{ emp.id }} - {{ emp.name }}
                 <span *ngIf="emp.isLocked" class="emp-lock-indicator" title="ロック状態">🔒</span>
               </span>
-              <span class="emp-current-dept" [ngStyle]="{ 'background-color': emp.assignedDept === 'Temp' ? 'rgba(142, 142, 147, 0.18)' : emp.assignedDept === 'A' ? 'rgba(0, 86, 210, 0.14)' : emp.assignedDept === 'B' ? 'rgba(52, 199, 89, 0.14)' : 'rgba(255, 149, 0, 0.14)' }">
+              <span class="emp-current-dept" [ngStyle]="{ 'background-color': emp.assignedDept === '保留' ? 'rgba(142, 142, 147, 0.18)' : emp.assignedDept === 'A' ? 'rgba(0, 86, 210, 0.14)' : emp.assignedDept === 'B' ? 'rgba(52, 199, 89, 0.14)' : 'rgba(255, 149, 0, 0.14)' }">
                 {{ emp.assignedDept }}
               </span>
             </label>
@@ -498,7 +498,7 @@
                   <option value="A">→ A事業部</option>
                   <option value="B">→ B事業部</option>
                   <option value="C">→ C事業部</option>
-                  <option value="Temp">→ 一時置き場</option>
+                  <option value="保留">→ 一時置き場</option>
                 </select>
                 <button
                   type="button"
@@ -583,7 +583,7 @@
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
-                <option value="Temp">一時</option>
+                <option value="保留">一時</option>
               </select>
             </div>
           </div>
@@ -632,7 +632,7 @@
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
-                <option value="Temp">一時</option>
+                <option value="保留">一時</option>
               </select>
             </div>
           </div>
@@ -681,7 +681,7 @@
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
-                <option value="Temp">一時</option>
+                <option value="保留">一時</option>
               </select>
             </div>
           </div>
