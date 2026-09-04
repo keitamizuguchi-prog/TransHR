@@ -1577,8 +1577,8 @@ export class App implements OnInit, OnDestroy {
     // 采用予定データの有無フラグを復元
     this.additionalFileLoaded.set(snapshot.hasRecruitData);
 
-    // 手動調整タブへ遷移してサイドバーを閉じる
-    this.currentScreen.set('manual');
+    // ダッシュボード画面へ遷移してサイドバーを閉じる
+    this.currentScreen.set('dashboard');
     this.closeSidebar();
 
     // 復元直後から差分を表示するために、復元後の状態を基準とする

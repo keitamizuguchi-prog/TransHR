@@ -712,7 +712,7 @@
     <!-- メイン画面（ダッシュボード） -->
     <div class="main-wrapper" *ngIf="currentScreen() === 'dashboard'">
       <!-- ファイル未選択時のガイダンス -->
-      <div *ngIf="mainFileName() === '' && !isProcessing()" class="empty-state-guide">
+      <div *ngIf="mainFileName() === '' && !simulationResult() && !isProcessing()" class="empty-state-guide">
         <div class="empty-state-content">
           <div class="empty-state-icon">📂</div>
           <h2 class="empty-state-title">従業員ファイルを選択してください</h2>
@@ -721,7 +721,7 @@
       </div>
 
       <!-- 左側：事業部エリア（75%） -->
-      <div class="left-section" *ngIf="mainFileName() !== ''">
+      <div class="left-section" *ngIf="mainFileName() !== '' || (simulationResult() && mainEmployees().length > 0)">
         <!-- 全社サマリー -->
         <div class="summary-bar-wrapper" *ngIf="simulationResult() as result">
           <!-- ステータスバッジ -->
