@@ -1724,16 +1724,12 @@ export class App implements OnInit, OnDestroy {
 
   goToObjectiveComparison(): void {
     this.currentScreen.set('objective');
-    if (this.objectiveComparisonResults().length === 0) {
-      this.runAllOptimizationsComparison();
-    }
+    this.runAllOptimizationsComparison();
   }
 
   goToMatrixComparison(): void {
     this.currentScreen.set('matrix');
-    if (this.matrixComparisonResults().length === 0) {
-      this.runMatrixComparison();
-    }
+    this.runMatrixComparison();
   }
 
   goToManualAdjustment(): void {
@@ -2284,7 +2280,7 @@ export class App implements OnInit, OnDestroy {
 
     this.optimizationExecuted.set(true);
     const mainOnlyEmployees = optimizedEmployees.filter(emp => emp.source !== 'candidate');
-    this.mainEmployees.set(mainOnlyEmployees);
+    this.mainEmployees.set(mainOnlyEmployees.map(e => ({ ...e })));
 
     this.updateSimulation();
 
@@ -2366,9 +2362,6 @@ export class App implements OnInit, OnDestroy {
     this.isProcessing.set(true);
 
     setTimeout(() => {
-      const mainEmployeesOnly = this.mainEmployees().map(e => ({ ...e }));
-      const allEmployees = this.employees().map(e => ({ ...e }));
-
       const objectives: OptimizationObjective[] = [
         'totalSales',
         'deptAProfit',
@@ -2388,6 +2381,9 @@ export class App implements OnInit, OnDestroy {
       for (let i = 0; i < objectives.length; i++) {
         const objective = objectives[i];
         const objectiveLabel = objectiveLabels[i];
+
+        // 各イテレーションごとに最新の従業員データから独立したディープコピーを作成
+        const mainEmployeesOnly = this.mainEmployees().map(e => ({ ...e }));
 
         // 従業員の配置をリセット（一時置き場に）して最適化を実行
         const mainEmployeesForOptimization = mainEmployeesOnly.map(emp => ({
@@ -2432,6 +2428,9 @@ export class App implements OnInit, OnDestroy {
           const objective = objectives[i];
           const objectiveLabel = objectiveLabels[i];
 
+          // 各イテレーションごとに最新の従業員データから独立したディープコピーを作成
+          const allEmployees = this.employees().map(e => ({ ...e }));
+
           // 採用予定者の配置を一時置き場にリセットして最適化を実行
           const allEmployeesForOptimization = allEmployees.map(emp => {
             if (emp.source === 'candidate') {
@@ -2475,8 +2474,6 @@ export class App implements OnInit, OnDestroy {
       }
 
       this.optimizationExecuted.set(true);
-      this.employees.set(allEmployees);
-      this.updateSimulation();
 
       console.log('目的間結果比較完了（メイン）:', mainResults);
       this.updateObjectiveChartData();
@@ -2645,12 +2642,12 @@ export class App implements OnInit, OnDestroy {
     this.isProcessing.set(true);
 
     setTimeout(() => {
-      const baseEmployees = this.mainEmployees();
-      const additionalEmployees = this.employees().filter(
-        emp => !baseEmployees.find(be => be.id === emp.id)
+      const currentBaseEmployees = this.mainEmployees();
+      const currentAdditionalEmployees = this.employees().filter(
+        emp => !currentBaseEmployees.find(be => be.id === emp.id)
       );
 
-      if (baseEmployees.length === 0 || additionalEmployees.length === 0) {
+      if (currentBaseEmployees.length === 0 || currentAdditionalEmployees.length === 0) {
         alert('メインファイルと追加ファイルの両方が必要です。');
         this.isProcessing.set(false);
         return;
@@ -2675,6 +2672,10 @@ export class App implements OnInit, OnDestroy {
       for (let i = 0; i < objectives.length; i++) {
         const objective = objectives[i];
         const objectiveLabel = objectiveLabels[i];
+
+        // 各イテレーションごとに最新データから独立したディープコピーを作成
+        const baseEmployees = currentBaseEmployees.map(e => ({ ...e }));
+        const additionalEmployees = currentAdditionalEmployees.map(e => ({ ...e }));
 
         // 採用前（100名）での最適化
         const beforeOptimized = this.calculatorService.optimizePlacement(
