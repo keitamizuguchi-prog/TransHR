@@ -964,6 +964,10 @@ export class App implements OnInit, OnDestroy {
   protected templateFileName = signal<string>('template');
   protected templateRowCount = signal<number>(100);
 
+  // 配置案エクスポート
+  protected exportPlacementModalOpen = signal<boolean>(false);
+  protected exportPlacementFileName = signal<string>('placement_result');
+
   // サイドバー・配置案スナップショット管理
   private static readonly SNAPSHOT_STORAGE_KEY = 'transhr_placement_snapshots';
   protected sidebarOpen = signal<boolean>(false);
@@ -1076,6 +1080,8 @@ export class App implements OnInit, OnDestroy {
       {
         title: '全社指標',
         rows: [
+          row('全社売上', left.totalSales, right.totalSales, '億円', 2, true),
+          row('全社利益', left.totalProfit, right.totalProfit, '億円', 2, true),
           row('総コスト', left.totalCost, right.totalCost, '億円', 2, false),
           row('一人あたり利益', left.perCapitaProfit, right.perCapitaProfit, '万円', 0, true),
           row('総人数', left.totalHeadcount, right.totalHeadcount, '名', 0, true),
@@ -2786,14 +2792,32 @@ export class App implements OnInit, OnDestroy {
       return;
     }
 
-    if (currentScreen === 'dashboard') {
-      this.exportDashboardToCsv();
-    } else if (currentScreen === 'manual') {
-      this.exportManualAdjustmentToCsv();
-    }
+    this.exportPlacementModalOpen.set(true);
   }
 
-  private exportDashboardToCsv(): void {
+  doExportPlacement(): void {
+    const currentScreen = this.currentScreen();
+    const fileName = this.exportPlacementFileName().trim() || 'placement_result';
+
+    if (currentScreen === 'dashboard') {
+      this.exportDashboardToCsv(fileName);
+    } else if (currentScreen === 'manual') {
+      this.exportManualAdjustmentToCsv(fileName);
+    }
+
+    this.closeExportPlacementModal();
+  }
+
+  openExportPlacementModal(): void {
+    this.exportPlacementModalOpen.set(true);
+  }
+
+  closeExportPlacementModal(): void {
+    this.exportPlacementModalOpen.set(false);
+    this.exportPlacementFileName.set('placement_result');
+  }
+
+  private exportDashboardToCsv(fileName: string): void {
     const result = this.simulationResult();
     const rows: string[] = [];
 
@@ -2833,7 +2857,7 @@ export class App implements OnInit, OnDestroy {
       );
     }
 
-    this.downloadCsv(rows.join('\n'), 'dashboard_result.csv');
+    this.downloadCsv(rows.join('\n'), `${fileName}.csv`);
   }
 
   private exportObjectiveComparisonToCsv(): void {
@@ -2877,7 +2901,7 @@ export class App implements OnInit, OnDestroy {
     this.downloadCsv(rows.join('\n'), 'matrix_comparison.csv');
   }
 
-  private exportManualAdjustmentToCsv(): void {
+  private exportManualAdjustmentToCsv(fileName: string): void {
     const result = this.simulationResult();
     const rows: string[] = [];
 
@@ -2917,7 +2941,7 @@ export class App implements OnInit, OnDestroy {
       );
     }
 
-    this.downloadCsv(rows.join('\n'), 'manual_adjustment.csv');
+    this.downloadCsv(rows.join('\n'), `${fileName}.csv`);
   }
 
   private downloadCsv(csvContent: string, fileName: string): void {
